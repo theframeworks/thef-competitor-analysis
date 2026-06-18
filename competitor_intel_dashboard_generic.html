@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitor Intelligence Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.1.0/iconfont/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page: #0E1116;
+    --bg-card: #161A22;
+    --bg-card-hover: #1B202A;
+    --bg-raised: #1F2530;
+    --bg-input: #1A1F29;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.14);
+    --text-1: #ECEEF2;
+    --text-2: #9BA3B0;
+    --text-3: #5C6573;
+    --accent: #4FD1B3;
+    --accent-dim: rgba(79,209,179,0.12);
+    --accent-strong: #2FB89A;
+    --gold: #E8B05C;
+    --coral: #E07856;
+    --violet: #9D8DF1;
+    --red: #E2675F;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-lg: 14px;
+  }
+
+  html, body { background: var(--bg-page); }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-page);
+    color: var(--text-1);
+    min-height: 100vh;
+    line-height: 1.5;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+  a { color: var(--accent); text-decoration: none; }
+
+  button {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-raised); color: var(--text-2);
+    font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  button:hover:not(:disabled) { background: #262C38; color: var(--text-1); border-color: rgba(255,255,255,0.22); }
+  button:active:not(:disabled) { transform: scale(0.97); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #06231C; font-weight: 600; }
+  button.primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); color: #06231C; }
+  button.ghost { background: transparent; border-color: transparent; }
+  button.ghost:hover:not(:disabled) { background: var(--bg-raised); }
+  button.small { padding: 5px 10px; font-size: 12px; }
+  button.big { padding: 12px 22px; font-size: 14px; }
+
+  input, select, textarea {
+    padding: 9px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong); background: var(--bg-input);
+    color: var(--text-1); font-size: 13px; font-family: inherit;
+    outline: none; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder, textarea::placeholder { color: var(--text-3); }
+  select option { background: var(--bg-input); }
+  textarea { resize: vertical; line-height: 1.6; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  .app-shell { max-width: 1240px; margin: 0 auto; padding: 28px 32px 64px; }
+
+  /* ===== Setup screen ===== */
+  .setup-wrap { max-width: 640px; margin: 0 auto; padding: 64px 24px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+  .setup-eyebrow { font-family: var(--font-serif); font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  .setup-title { font-family: var(--font-serif); font-size: 34px; font-weight: 600; line-height: 1.2; margin-bottom: 12px; }
+  .setup-sub { font-size: 14.5px; color: var(--text-2); line-height: 1.6; margin-bottom: 36px; max-width: 520px; }
+  .setup-field { margin-bottom: 22px; }
+  .setup-label { font-size: 12.5px; font-weight: 600; color: var(--text-1); margin-bottom: 6px; display: block; }
+  .setup-hint { font-size: 12px; color: var(--text-3); margin-top: 6px; line-height: 1.5; }
+  .setup-field input, .setup-field textarea { width: 100%; }
+  .setup-actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .setup-count { font-size: 12px; color: var(--text-3); }
+  .setup-error { font-size: 12.5px; color: var(--red); margin-top: 8px; }
+
+  .build-progress { margin-top: 28px; }
+  .build-log { margin-top: 14px; max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); padding: 10px 14px; }
+  .build-log-row { font-size: 12px; color: var(--text-2); padding: 3px 0; font-family: 'SF Mono', 'Consolas', monospace; }
+  .build-log-row.ok { color: var(--accent); }
+  .build-log-row.err { color: var(--red); }
+
+  .progress-track { height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 14px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
+  .progress-label { font-size: 11px; color: var(--text-3); margin-top: 6px; }
+
+  /* ===== Dashboard ===== */
+  .topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+    padding-bottom: 20px; border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .brand-mark { font-family: var(--font-serif); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+  .page-title { font-family: var(--font-serif); font-size: 26px; font-weight: 600; color: var(--text-1); line-height: 1.15; }
+  .page-sub { font-size: 13px; color: var(--text-2); margin-top: 5px; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+  .search-wrap { position: relative; flex: 1 1 220px; min-width: 160px; }
+  .search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-3); pointer-events: none; }
+  .search-wrap input { padding-left: 32px; width: 100%; }
+  .toolbar select { flex: 0 0 auto; }
+  .result-count { font-size: 12px; color: var(--text-3); margin-left: auto; white-space: nowrap; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .stat-val { font-family: var(--font-serif); font-size: 26px; font-weight: 600; color: var(--text-1); }
+  .stat-label { font-size: 11px; color: var(--text-3); margin-top: 4px; letter-spacing: 0.02em; }
+
+  .anchor-banner { display: flex; align-items: center; gap: 10px; background: var(--accent-dim); border: 1px solid rgba(79,209,179,0.25); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 20px; font-size: 12.5px; color: var(--accent); }
+
+  .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+
+  .brand-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 16px 18px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .brand-card:hover { background: var(--bg-card-hover); border-color: var(--border-strong); }
+  .brand-card.selected { border-color: var(--accent); background: var(--bg-card-hover); }
+  .brand-card.is-anchor { border-color: rgba(79,209,179,0.4); }
+  .brand-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; }
+  .brand-name { font-weight: 600; font-size: 15px; color: var(--text-1); }
+  .anchor-pip { font-size: 9.5px; padding: 2px 6px; border-radius: 8px; background: var(--accent); color: #06231C; font-weight: 700; letter-spacing: 0.04em; margin-left: 6px; vertical-align: 1px; }
+  .brand-tagline { font-family: var(--font-serif); font-style: italic; font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+  .activity-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+
+  .tier-badge { display: inline-block; font-size: 10.5px; padding: 3px 9px; border-radius: 20px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; }
+
+  .key-message { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin: 10px 0; }
+  .theme-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+  .theme-pill { font-size: 11px; padding: 3px 8px; background: var(--bg-raised); border-radius: 10px; color: var(--text-2); }
+
+  .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); }
+  .channel-stat { font-size: 11px; color: var(--text-3); display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; }
+  .tone-tag { font-size: 11px; padding: 3px 9px; border-radius: 10px; background: var(--bg-raised); font-weight: 600; }
+
+  .list-table { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .list-row { display: grid; grid-template-columns: 180px 1fr auto; gap: 16px; align-items: center; padding: 13px 18px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .list-row:last-child { border-bottom: none; }
+  .list-row:hover { background: var(--bg-card-hover); }
+  .list-row.selected { background: var(--accent-dim); }
+
+  .detail-panel { margin-top: 24px; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); overflow: hidden; }
+  .detail-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .detail-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+  .detail-name { font-family: var(--font-serif); font-weight: 600; font-size: 20px; }
+  .detail-tagline { font-style: italic; font-family: var(--font-serif); font-size: 13.5px; color: var(--text-2); }
+
+  .tab-row { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 22px; }
+  .tab-btn { font-size: 13px; padding: 11px 16px; border-radius: 0; border: none; background: none; border-bottom: 2px solid transparent; color: var(--text-3); }
+  .tab-btn.active { border-bottom-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .tab-btn:hover:not(.active) { color: var(--text-2); background: none; border-color: transparent; }
+
+  .tab-body { padding: 22px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } .list-row { grid-template-columns: 1fr; } }
+
+  .eyebrow { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 9px; }
+  .body-text { font-size: 13.5px; line-height: 1.7; color: var(--text-2); }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .metric-box { background: var(--bg-raised); border-radius: var(--radius-sm); padding: 11px 13px; }
+  .metric-box-label { font-size: 10.5px; color: var(--text-3); display: flex; align-items: center; gap: 4px; margin-bottom: 5px; }
+  .metric-box-val { font-size: 17px; font-weight: 600; font-family: var(--font-serif); }
+
+  .format-row { display: flex; align-items: flex-start; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .format-row:last-child { border-bottom: none; }
+
+  .tone-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid var(--border-strong); border-radius: 24px; margin-bottom: 18px; }
+
+  .channel-bar-row { margin-bottom: 12px; }
+  .channel-bar-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 5px; }
+  .channel-bar-track { height: 5px; background: var(--bg-raised); border-radius: 4px; overflow: hidden; }
+  .channel-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.5s ease; }
+
+  .diff-block { background: var(--bg-raised); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 18px; font-size: 14px; line-height: 1.7; }
+  .diff-block.empty { color: var(--text-3); font-style: italic; }
+
+  .opp-section { margin-top: 36px; border-top: 1px solid var(--border); padding-top: 26px; }
+  .opp-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .opp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .opp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px 17px; }
+  .opp-num { font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 5px; font-family: var(--font-serif); }
+  .opp-title { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+  .opp-body { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+  .opp-empty { font-size: 13px; color: var(--text-3); border: 1px dashed var(--border-strong); border-radius: var(--radius); padding: 24px; text-align: center; }
+
+  .footer-note { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  .settings-panel { background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 22px; }
+  .settings-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .settings-row input[type="password"], .settings-row input[type="text"] { flex: 1 1 280px; min-width: 200px; }
+  .key-status { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .key-status.ok { color: var(--accent); }
+  .key-status.missing { color: var(--text-3); }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+  .toast { position: fixed; bottom: 22px; right: 22px; background: var(--bg-raised); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 12px 18px; font-size: 13px; max-width: 320px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 50; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback, useRef } = React;
+
+const PROJECT_STORAGE = "competitor_intel_project_v1";
+const PROXY_URL = "PASTE_THE_APPS_SCRIPT_EXEC_URL_HERE";
+
+const TIERS_DEFAULT = ["All"];
+const TONE_COLORS = {
+  human: "#3ddc97", expert: "#5b9dff", confident: "#f0a640", intelligent: "#a78bfa",
+  corporate: "#9aa3b8", analytical: "#5b9dff", purposeful: "#3ddc97", "execution-focused": "#ff8a5b",
+  visionary: "#a78bfa", "research-credible": "#a78bfa", aspirational: "#f0a640", warm: "#3ddc97",
+  energetic: "#ff8a5b", precise: "#5b9dff", operational: "#9aa3b8", measured: "#9aa3b8",
+  "design-forward": "#f472b6", "engineering-proud": "#ff8a5b", "freshly-bold": "#a78bfa",
+  ideological: "#ff5f5f", bold: "#ff8a5b", playful: "#f472b6", minimalist: "#9aa3b8",
+  technical: "#5b9dff", premium: "#f0a640", disruptive: "#ff5f5f"
+};
+const TONE_LIST = Object.keys(TONE_COLORS);
+const ACTIVITY_ORDER = { "very-high": 4, high: 3, medium: 2, low: 1 };
+
+function loadProject() {
+  try {
+    const raw = localStorage.getItem(PROJECT_STORAGE);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function saveProject(project) {
+  try { localStorage.setItem(PROJECT_STORAGE, JSON.stringify(project)); } catch (e) {}
+}
+
+function clearProject() {
+  try { localStorage.removeItem(PROJECT_STORAGE); } catch (e) {}
+}
+
+function parseCompetitorList(raw) {
+  return raw
+    .split(/[\n,]/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i);
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "brand";
+}
+
+/* ============================== ROOT ============================== */
+function Root() {
+  const [project, setProject] = useState(loadProject);
+
+  function startProject(p) {
+    setProject(p);
+    saveProject(p);
+  }
+
+  function updateProject(updater) {
+    setProject(prev => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      saveProject(next);
+      return next;
+    });
+  }
+
+  function endProject() {
+    setProject(null);
+    clearProject();
+  }
+
+  if (!project) {
+    return React.createElement(SetupScreen, { onStart: startProject });
+  }
+
+  return React.createElement(Dashboard, { project, updateProject, onNewProject: endProject });
+}
+
+/* ============================== SETUP SCREEN ============================== */
+function SetupScreen({ onStart }) {
+  const [anchor, setAnchor] = useState("");
+  const [competitorsRaw, setCompetitorsRaw] = useState("");
+  const [error, setError] = useState(null);
+  const [building, setBuilding] = useState(false);
+  const [buildProgress, setBuildProgress] = useState({ current: 0, total: 0 });
+  const [buildLog, setBuildLog] = useState([]);
+  const cancelRef = useRef(false);
+
+  const competitors = parseCompetitorList(competitorsRaw);
+
+  async function researchBrand(name, anchorName, isAnchor) {
+    const prompt = `You are a competitive brand intelligence analyst. Research the current social media presence, brand positioning, and public activity for "${name}", a company being analyzed ${isAnchor ? "as the anchor brand" : `as a competitor to "${anchorName}"`}.
+
+Return ONLY a valid JSON object, no markdown, no explanation, no code fences:
+{
+  "tagline": "their brand tagline or positioning phrase, max 60 chars",
+  "tier": "a short category label for what kind of company this is, e.g. 'Large IT Services', 'AI Pure-Play', 'Boutique Agency', max 28 chars",
+  "keyMessage": "single sentence core brand message, max 150 chars",
+  "themes": ["theme1", "theme2", "theme3", "theme4"],
+  "formats": ["content format 1", "content format 2", "content format 3", "content format 4"],
+  "notable": "2-3 sentences on notable recent campaigns, brand moves, or news, max 300 chars",
+  "tone": "one word from: ${TONE_LIST.join(", ")}",
+  "activity": "one of: very-high, high, medium, low",
+  "linkedin": <approximate LinkedIn followers in thousands, integer>,
+  "instagram": <approximate Instagram followers in thousands, integer>,
+  "youtube": <approximate YouTube subscribers in thousands, integer>,
+  "differentiator": "1-2 sentences on what makes this brand distinct${isAnchor ? "" : ` versus ${anchorName}`}, max 220 chars"
+}`;
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(`API error ${res.status}: ${errText.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in response");
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  async function researchOpportunities(anchorName, allBrandSummaries) {
+    const prompt = `You are a brand strategy consultant. The anchor brand is "${anchorName}". Here is a summary of it and its competitors:
+
+${allBrandSummaries}
+
+Identify exactly 6 genuine differentiation opportunities for "${anchorName}" based on gaps you observe across the competitor set. Return ONLY a valid JSON array, no markdown, no explanation:
+[
+  { "title": "short opportunity title, max 6 words", "body": "1-2 sentence explanation of the gap and why it matters, max 220 chars" }
+]
+Return exactly 6 items.`;
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("No JSON array found");
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  async function researchCrossThemes(anchorName, allBrandSummaries) {
+    const prompt = `You are a brand strategy consultant. The anchor brand is "${anchorName}". Here is a summary of it and its competitors:
+
+${allBrandSummaries}
+
+Analyze the FULL set (including the anchor brand) for recurring patterns. Return ONLY a valid JSON object, no markdown, no explanation:
+{
+  "messagingAngles": [
+    { "label": "short name for a common messaging angle, max 6 words", "brands": ["Brand A", "Brand B"], "body": "1-2 sentences describing this shared angle and how brands frame it, max 200 chars" }
+  ],
+  "contentThemes": [
+    { "label": "short name for a recurring content theme, max 6 words", "brands": ["Brand A", "Brand B"], "body": "1-2 sentences describing the theme, max 200 chars" }
+  ],
+  "toneClusters": [
+    { "label": "short name for a tone-of-voice cluster, max 5 words", "brands": ["Brand A", "Brand B"], "body": "1 sentence describing this tonal cluster, max 160 chars" }
+  ]
+}
+Include 3-5 items in each array, only where a pattern genuinely spans 2 or more brands. List actual brand names from the set above in the "brands" field for each item.`;
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 1800,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON object found");
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  async function handleBuild() {
+    setError(null);
+    if (!anchor.trim()) { setError("Enter your brand name."); return; }
+    if (competitors.length === 0) { setError("Enter at least one competitor."); return; }
+    if (competitors.length > 30) { setError("Please limit to 30 competitors at a time."); return; }
+
+    setBuilding(true);
+    cancelRef.current = false;
+    setBuildLog([]);
+
+    const allNames = [anchor.trim(), ...competitors];
+    setBuildProgress({ current: 0, total: allNames.length + 2 });
+    const brands = [];
+    let failures = 0;
+
+    for (let i = 0; i < allNames.length; i++) {
+      if (cancelRef.current) return;
+      const name = allNames[i];
+      const isAnchor = i === 0;
+      setBuildLog(l => [...l, { text: `Researching ${name}…`, status: "pending" }]);
+      try {
+        const parsed = await researchBrand(name, anchor.trim(), isAnchor);
+        brands.push(Object.assign({
+          id: slugify(name) + (brands.find(b => b.id === slugify(name)) ? "-" + i : ""),
+          name,
+          isAnchor
+        }, parsed));
+        setBuildLog(l => l.map((row, idx) => idx === l.length - 1 ? { text: `${name} researched`, status: "ok" } : row));
+      } catch (e) {
+        failures++;
+        brands.push({
+          id: slugify(name) + "-" + i, name, isAnchor,
+          tagline: "Research unavailable", tier: "Unclassified",
+          keyMessage: "Could not retrieve data for this brand — try refreshing it individually later.",
+          themes: [], formats: [], notable: "No data retrieved.", tone: "measured", activity: "medium",
+          linkedin: 0, instagram: 0, youtube: 0, differentiator: "Not yet available."
+        });
+        setBuildLog(l => l.map((row, idx) => idx === l.length - 1 ? { text: `${name} — failed (${e.message})`, status: "err" } : row));
+      }
+      setBuildProgress({ current: i + 1, total: allNames.length + 2 });
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    let opportunities = [];
+    setBuildLog(l => [...l, { text: "Synthesizing differentiation opportunities…", status: "pending" }]);
+    try {
+      const summary = brands.map(b => `${b.name}${b.isAnchor ? " (ANCHOR)" : ""}: ${b.tagline} — ${b.keyMessage}`).join("\n");
+      opportunities = await researchOpportunities(anchor.trim(), summary);
+      setBuildLog(l => l.map((row, idx) => idx === l.length - 1 ? { text: "Opportunities synthesized", status: "ok" } : row));
+    } catch (e) {
+      setBuildLog(l => l.map((row, idx) => idx === l.length - 1 ? { text: `Opportunity synthesis failed (${e.message})`, status: "err" } : row));
+    }
+    setBuildProgress({ current: allNames.length + 1, total: allNames.length + 2 });
+
+    let crossThemes = null;
+    setBuildLog(l => [...l, { text: "Identifying cross-brand themes…", status: "pending" }]);
+    try {
+      const summary2 = brands.map(b => `${b.name}${b.isAnchor ? " (ANCHOR)" : ""}: ${b.tagline} — ${b.keyMessage} | themes: ${(b.themes || []).join(", ")} | tone: ${b.tone}`).join("\n");
+      crossThemes = await researchCrossThemes(anchor.trim(), summary2);
+      setBuildLog(l => l.map((row, idx) => idx === l.length - 1 ? { text: "Cross-brand themes identified", status: "ok" } : row));
+    } catch (e) {
+      setBuildLog(l => l.map((row, idx) => idx === l.length - 1 ? { text: `Cross-brand theme analysis failed (${e.message})`, status: "err" } : row));
+    }
+    setBuildProgress({ current: allNames.length + 2, total: allNames.length + 2 });
+
+    await new Promise(r => setTimeout(r, 400));
+    onStart({
+      anchorName: anchor.trim(),
+      brands,
+      opportunities,
+      crossThemes,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  return React.createElement("div", { className: "setup-wrap" },
+    React.createElement("div", { className: "setup-eyebrow" }, "Competitor intelligence monitor"),
+    React.createElement("div", { className: "setup-title" }, "Build a brand intelligence dashboard"),
+    React.createElement("div", { className: "setup-sub" },
+      "Enter your brand and the competitors you want to track. Claude will research each one's positioning, content themes, tone, and channel scale, then generate a live dashboard you can keep refreshing."
+    ),
+
+    !building && React.createElement(React.Fragment, null,
+      React.createElement("div", { className: "setup-field" },
+        React.createElement("label", { className: "setup-label" }, "Your brand"),
+        React.createElement("input", {
+          type: "text", placeholder: "e.g. UST, Acme Corp, Northwind…",
+          value: anchor, onChange: e => setAnchor(e.target.value), style: { width: "100%" }
+        })
+      ),
+      React.createElement("div", { className: "setup-field" },
+        React.createElement("label", { className: "setup-label" }, "Competitors"),
+        React.createElement("textarea", {
+          placeholder: "One per line or comma-separated, e.g.\nAccenture\nInfosys\nCognizant",
+          value: competitorsRaw, onChange: e => setCompetitorsRaw(e.target.value),
+          rows: 6, style: { width: "100%" }
+        }),
+        React.createElement("div", { className: "setup-hint" },
+          competitors.length > 0
+            ? `${competitors.length} competitor${competitors.length === 1 ? "" : "s"} detected: ${competitors.slice(0, 6).join(", ")}${competitors.length > 6 ? "…" : ""}`
+            : "Separate names with commas or new lines. Up to 30 competitors."
+        )
+      ),
+      error && React.createElement("div", { className: "setup-error" }, error),
+      React.createElement("div", { className: "setup-actions" },
+        React.createElement("button", { className: "primary big", onClick: handleBuild },
+          React.createElement("i", { className: "ti ti-sparkles", "aria-hidden": "true" }), "Build dashboard"
+        ),
+        React.createElement("span", { className: "setup-count" }, `${competitors.length + (anchor.trim() ? 1 : 0)} brand${(competitors.length + (anchor.trim() ? 1 : 0)) === 1 ? "" : "s"} to research`)
+      )
+    ),
+
+    building && React.createElement("div", { className: "build-progress" },
+      React.createElement("div", { className: "eyebrow" }, "Researching brands"),
+      React.createElement("div", { className: "progress-track" },
+        React.createElement("div", {
+          className: "progress-fill",
+          style: { width: `${buildProgress.total ? Math.round((buildProgress.current / buildProgress.total) * 100) : 0}%` }
+        })
+      ),
+      React.createElement("div", { className: "progress-label" }, `${buildProgress.current} of ${buildProgress.total}`),
+      React.createElement("div", { className: "build-log" },
+        buildLog.map((row, i) => React.createElement("div", { key: i, className: `build-log-row ${row.status === "ok" ? "ok" : row.status === "err" ? "err" : ""}` },
+          row.status === "ok" ? "✓ " : row.status === "err" ? "✗ " : "… ", row.text
+        ))
+      )
+    )
+  );
+}
+
+/* ============================== DASHBOARD ============================== */
+function Dashboard({ project, updateProject, onNewProject }) {
+  const [selected, setSelected] = useState(null);
+  const [filter, setFilter] = useState("All");
+  const [sort, setSort] = useState("name");
+  const [search, setSearch] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshProgress, setRefreshProgress] = useState({ current: 0, total: 0, brand: "" });
+  const [view, setView] = useState("grid");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showSettings, setShowSettings] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [refreshingOpps, setRefreshingOpps] = useState(false);
+  const [refreshingThemes, setRefreshingThemes] = useState(false);
+  const cancelRef = useRef(false);
+
+  const brands = project.brands;
+  const tiers = ["All", ...Array.from(new Set(brands.map(b => b.tier))).sort()];
+
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+
+  function touchUpdated(newBrands, newOpps) {
+    updateProject(prev => Object.assign({}, prev, {
+      brands: newBrands || prev.brands,
+      opportunities: newOpps !== undefined ? newOpps : prev.opportunities,
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  const filtered = brands
+    .filter(b => filter === "All" || b.tier === filter)
+    .filter(b => !search || b.name.toLowerCase().includes(search.toLowerCase()) || (b.themes || []).some(t => t.toLowerCase().includes(search.toLowerCase())))
+    .sort((a, b) => {
+      if (a.isAnchor) return -1;
+      if (b.isAnchor) return 1;
+      if (sort === "name") return a.name.localeCompare(b.name);
+      if (sort === "activity") return ACTIVITY_ORDER[b.activity] - ACTIVITY_ORDER[a.activity];
+      if (sort === "linkedin") return b.linkedin - a.linkedin;
+      return 0;
+    });
+
+  async function researchBrand(brand) {
+    const prompt = `You are a competitive brand intelligence analyst. Research the current social media presence, brand positioning, and public activity for "${brand.name}", a company being analyzed ${brand.isAnchor ? "as the anchor brand" : `as a competitor to "${project.anchorName}"`}.
+
+Return ONLY a valid JSON object, no markdown, no explanation, no code fences:
+{
+  "tagline": "their brand tagline or positioning phrase, max 60 chars",
+  "tier": "a short category label, max 28 chars",
+  "keyMessage": "single sentence core brand message, max 150 chars",
+  "themes": ["theme1", "theme2", "theme3", "theme4"],
+  "formats": ["content format 1", "content format 2", "content format 3", "content format 4"],
+  "notable": "2-3 sentences on notable recent campaigns or brand moves, max 300 chars",
+  "tone": "one word from: ${TONE_LIST.join(", ")}",
+  "activity": "one of: very-high, high, medium, low",
+  "linkedin": <approximate LinkedIn followers in thousands, integer>,
+  "instagram": <approximate Instagram followers in thousands, integer>,
+  "youtube": <approximate YouTube subscribers in thousands, integer>,
+  "differentiator": "1-2 sentences on what makes this brand distinct${brand.isAnchor ? "" : ` versus ${project.anchorName}`}, max 220 chars"
+}`;
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(`API error ${res.status}: ${errText.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in response");
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  async function researchOpportunities(currentBrands) {
+    const summary = currentBrands.map(b => `${b.name}${b.isAnchor ? " (ANCHOR)" : ""}: ${b.tagline} — ${b.keyMessage}`).join("\n");
+    const prompt = `You are a brand strategy consultant. The anchor brand is "${project.anchorName}". Here is a summary of it and its competitors:
+
+${summary}
+
+Identify exactly 6 genuine differentiation opportunities for "${project.anchorName}" based on gaps you observe across the competitor set. Return ONLY a valid JSON array, no markdown, no explanation:
+[
+  { "title": "short opportunity title, max 6 words", "body": "1-2 sentence explanation of the gap and why it matters, max 220 chars" }
+]
+Return exactly 6 items.`;
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("No JSON array found");
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  async function researchCrossThemes(currentBrands) {
+    const summary = currentBrands.map(b => `${b.name}${b.isAnchor ? " (ANCHOR)" : ""}: ${b.tagline} — ${b.keyMessage} | themes: ${(b.themes || []).join(", ")} | tone: ${b.tone}`).join("\n");
+    const prompt = `You are a brand strategy consultant. The anchor brand is "${project.anchorName}". Here is a summary of it and its competitors:
+
+${summary}
+
+Analyze the FULL set (including the anchor brand) for recurring patterns. Return ONLY a valid JSON object, no markdown, no explanation:
+{
+  "messagingAngles": [
+    { "label": "short name for a common messaging angle, max 6 words", "brands": ["Brand A", "Brand B"], "body": "1-2 sentences describing this shared angle and how brands frame it, max 200 chars" }
+  ],
+  "contentThemes": [
+    { "label": "short name for a recurring content theme, max 6 words", "brands": ["Brand A", "Brand B"], "body": "1-2 sentences describing the theme, max 200 chars" }
+  ],
+  "toneClusters": [
+    { "label": "short name for a tone-of-voice cluster, max 5 words", "brands": ["Brand A", "Brand B"], "body": "1 sentence describing this tonal cluster, max 160 chars" }
+  ]
+}
+Include 3-5 items in each array, only where a pattern genuinely spans 2 or more brands. List actual brand names from the set above in the "brands" field for each item.`;
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 1800,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON object found");
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  const refreshAll = useCallback(async () => {
+    cancelRef.current = false;
+    setRefreshing(true);
+    const list = [...brands];
+    setRefreshProgress({ current: 0, total: list.length, brand: "" });
+    let errorCount = 0;
+    let updated = [...brands];
+
+    for (let i = 0; i < list.length; i++) {
+      if (cancelRef.current) break;
+      const brand = list[i];
+      setRefreshProgress({ current: i + 1, total: list.length, brand: brand.name });
+      try {
+        const parsed = await researchBrand(brand);
+        updated = updated.map(b => b.id === brand.id ? Object.assign({}, b, parsed) : b);
+        touchUpdated(updated);
+      } catch (e) {
+        errorCount++;
+      }
+      await new Promise(r => setTimeout(r, 350));
+    }
+
+    setRefreshing(false);
+    setRefreshProgress({ current: 0, total: 0, brand: "" });
+    setToast({
+      text: errorCount > 0
+        ? `Refreshed with ${errorCount} error(s). Cached data kept for those brands.`
+        : "All brands refreshed successfully."
+    });
+  }, [brands]);
+
+  const refreshOne = useCallback(async (brandId) => {
+    const brand = brands.find(b => b.id === brandId);
+    if (!brand) return;
+    setRefreshing(true);
+    setRefreshProgress({ current: 1, total: 1, brand: brand.name });
+    try {
+      const parsed = await researchBrand(brand);
+      const updated = brands.map(b => b.id === brandId ? Object.assign({}, b, parsed) : b);
+      touchUpdated(updated);
+      setToast({ text: `${brand.name} refreshed.` });
+    } catch (e) {
+      setToast({ text: `Could not refresh ${brand.name}: ${e.message}` });
+    }
+    setRefreshing(false);
+    setRefreshProgress({ current: 0, total: 0, brand: "" });
+  }, [brands]);
+
+  const refreshOpportunities = useCallback(async () => {
+    setRefreshingOpps(true);
+    try {
+      const opps = await researchOpportunities(brands);
+      touchUpdated(null, opps);
+      setToast({ text: "Opportunities regenerated." });
+    } catch (e) {
+      setToast({ text: `Could not regenerate opportunities: ${e.message}` });
+    }
+    setRefreshingOpps(false);
+  }, [brands]);
+
+  const refreshCrossThemes = useCallback(async () => {
+    setRefreshingThemes(true);
+    try {
+      const themes = await researchCrossThemes(brands);
+      updateProject(prev => Object.assign({}, prev, { crossThemes: themes, updatedAt: new Date().toISOString() }));
+      setToast({ text: "Cross-brand themes regenerated." });
+    } catch (e) {
+      setToast({ text: `Could not regenerate themes: ${e.message}` });
+    }
+    setRefreshingThemes(false);
+  }, [brands]);
+
+  function activityDot(level) {
+    const colors = { "very-high": "#3ddc97", high: "#7fc97f", medium: "#E8B05C", low: "#5C6573" };
+    return React.createElement("span", { className: "activity-dot", style: { background: colors[level] || "#888" } });
+  }
+
+  const tierPalette = ["#4FD1B3", "#9D8DF1", "#7AAEFF", "#E89A7C", "#E8B05C", "#E2675F", "#3ddc97"];
+  function tierColor(tier) {
+    const idx = tiers.indexOf(tier);
+    return tierPalette[((idx < 0 ? 0 : idx) % tierPalette.length)];
+  }
+  function tierBadge(tier) {
+    const c = tierColor(tier);
+    return React.createElement("span", { className: "tier-badge", style: { background: c + "26", color: c } }, tier);
+  }
+
+  const selectedBrand = brands.find(b => b.id === selected);
+  const fmtTime = project.updatedAt ? new Date(project.updatedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : null;
+
+  return React.createElement(React.Fragment, null,
+    React.createElement("h1", { className: "sr-only" }, `Competitor intelligence dashboard for ${project.anchorName}`),
+
+    showSettings && React.createElement(SettingsPanel, {
+      onClose: () => setShowSettings(false), onNewProject
+    }),
+
+    React.createElement("div", { className: "topbar" },
+      React.createElement("div", null,
+        React.createElement("div", { className: "brand-mark" }, project.anchorName + " · Brand Intelligence"),
+        React.createElement("div", { className: "page-title" }, "Competitor Monitor"),
+        React.createElement("div", { className: "page-sub" },
+          `${brands.length} brands tracked`, fmtTime ? ` · Last updated ${fmtTime}` : ""
+        ),
+        refreshing && refreshProgress.total > 0 && React.createElement("div", { style: { maxWidth: 360 } },
+          React.createElement("div", { className: "progress-track" },
+            React.createElement("div", {
+              className: "progress-fill",
+              style: { width: `${Math.round((refreshProgress.current / refreshProgress.total) * 100)}%` }
+            })
+          ),
+          React.createElement("div", { className: "progress-label" },
+            `${refreshProgress.current} of ${refreshProgress.total} · researching ${refreshProgress.brand}`
+          )
+        )
+      ),
+      React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+        React.createElement("button", { className: "ghost small", onClick: () => setShowSettings(true) },
+          React.createElement("i", { className: "ti ti-settings", "aria-hidden": "true" }), "Settings"
+        ),
+        React.createElement("button", { className: "small", onClick: () => setView(v => v === "grid" ? "list" : "grid") },
+          React.createElement("i", { className: `ti ${view === "grid" ? "ti-list" : "ti-layout-grid"}`, "aria-hidden": "true" }),
+          view === "grid" ? "List" : "Grid"
+        ),
+        React.createElement("button", {
+          className: "primary small", onClick: refreshAll, disabled: refreshing
+        },
+          React.createElement("i", { className: `ti ti-refresh ${refreshing ? "spin" : ""}`, "aria-hidden": "true" }),
+          refreshing ? "Researching…" : "Refresh all"
+        )
+      )
+    ),
+
+    React.createElement("div", { className: "anchor-banner" },
+      React.createElement("i", { className: "ti ti-flag-3", "aria-hidden": "true" }),
+      `Tracking ${project.anchorName} against ${brands.length - 1} competitor${brands.length - 1 === 1 ? "" : "s"}`
+    ),
+
+    React.createElement("div", { className: "toolbar" },
+      React.createElement("div", { className: "search-wrap" },
+        React.createElement("i", { className: "ti ti-search", "aria-hidden": "true" }),
+        React.createElement("input", {
+          type: "text", placeholder: "Search brands or themes…", value: search,
+          onChange: e => setSearch(e.target.value)
+        })
+      ),
+      React.createElement("select", { value: filter, onChange: e => setFilter(e.target.value) },
+        tiers.map(t => React.createElement("option", { key: t }, t))
+      ),
+      React.createElement("select", { value: sort, onChange: e => setSort(e.target.value) },
+        React.createElement("option", { value: "name" }, "Sort: A–Z"),
+        React.createElement("option", { value: "activity" }, "Sort: activity"),
+        React.createElement("option", { value: "linkedin" }, "Sort: LinkedIn scale")
+      ),
+      React.createElement("div", { className: "result-count" }, `${filtered.length} shown`)
+    ),
+
+    React.createElement("div", { className: "stat-grid" },
+      [
+        { label: "Very high activity", val: brands.filter(b => b.activity === "very-high").length },
+        { label: "High activity", val: brands.filter(b => b.activity === "high").length },
+        { label: "Tiers represented", val: tiers.length - 1 },
+        { label: "Competitors tracked", val: brands.length - 1 },
+        { label: "Avg LinkedIn scale", val: Math.round(brands.reduce((s, b) => s + (b.linkedin || 0), 0) / brands.length) + "K" }
+      ].map(s => React.createElement("div", { key: s.label, className: "stat-card" },
+        React.createElement("div", { className: "stat-val" }, s.val),
+        React.createElement("div", { className: "stat-label" }, s.label)
+      ))
+    ),
+
+    view === "grid"
+      ? React.createElement("div", { className: "brand-grid" },
+          filtered.map(b => React.createElement("div", {
+            key: b.id,
+            className: `brand-card ${selected === b.id ? "selected" : ""} ${b.isAnchor ? "is-anchor" : ""}`,
+            onClick: () => { setSelected(b.id === selected ? null : b.id); setActiveTab("overview"); }
+          },
+            React.createElement("div", { className: "brand-card-head" },
+              React.createElement("div", null,
+                React.createElement("div", { className: "brand-name" }, b.name, b.isAnchor && React.createElement("span", { className: "anchor-pip" }, "YOU")),
+                React.createElement("div", { className: "brand-tagline" }, b.tagline)
+              ),
+              activityDot(b.activity)
+            ),
+            React.createElement("div", { style: { marginBottom: 8 } }, tierBadge(b.tier)),
+            React.createElement("div", { className: "key-message" }, b.keyMessage),
+            React.createElement("div", { className: "theme-pills" },
+              (b.themes || []).slice(0, 3).map(t => React.createElement("span", { key: t, className: "theme-pill" }, t))
+            ),
+            React.createElement("div", { className: "card-footer" },
+              React.createElement("div", null,
+                React.createElement("span", { className: "channel-stat" },
+                  React.createElement("i", { className: "ti ti-brand-linkedin", "aria-hidden": "true" }), `${b.linkedin || 0}K`
+                ),
+                (b.instagram || 0) > 0 && React.createElement("span", { className: "channel-stat" },
+                  React.createElement("i", { className: "ti ti-brand-instagram", "aria-hidden": "true" }), `${b.instagram}K`
+                )
+              ),
+              React.createElement("span", {
+                className: "tone-tag", style: { color: TONE_COLORS[b.tone] || "var(--text-2)" }
+              }, b.tone)
+            )
+          ))
+        )
+      : React.createElement("div", { className: "list-table" },
+          filtered.map(b => React.createElement("div", {
+            key: b.id,
+            className: `list-row ${selected === b.id ? "selected" : ""}`,
+            onClick: () => { setSelected(b.id === selected ? null : b.id); setActiveTab("overview"); }
+          },
+            React.createElement("div", null,
+              React.createElement("div", { className: "brand-name", style: { fontSize: 14 } }, b.name, b.isAnchor && React.createElement("span", { className: "anchor-pip" }, "YOU")),
+              React.createElement("div", { style: { marginTop: 4 } }, tierBadge(b.tier))
+            ),
+            React.createElement("div", { className: "key-message", style: { margin: 0 } }, b.keyMessage),
+            React.createElement("div", { style: { display: "flex", gap: 14, alignItems: "center" } },
+              React.createElement("span", { className: "channel-stat" },
+                React.createElement("i", { className: "ti ti-brand-linkedin", "aria-hidden": "true" }), `${b.linkedin || 0}K`
+              ),
+              React.createElement("span", { style: { display: "flex", alignItems: "center", gap: 5 } },
+                activityDot(b.activity),
+                React.createElement("span", { style: { fontSize: 11, color: "var(--text-3)" } }, b.activity)
+              )
+            )
+          ))
+        ),
+
+    selectedBrand && React.createElement(DetailPanel, {
+      brand: selectedBrand, activeTab, setActiveTab,
+      onClose: () => setSelected(null),
+      onRefresh: () => refreshOne(selectedBrand.id),
+      refreshing, tierBadge
+    }),
+
+    React.createElement(CrossThemesSection, {
+      crossThemes: project.crossThemes,
+      onRefresh: refreshCrossThemes,
+      refreshing: refreshingThemes
+    }),
+
+    React.createElement("div", { className: "opp-section" },
+      React.createElement("div", { className: "opp-section-head" },
+        React.createElement("div", { className: "eyebrow", style: { marginBottom: 0 } }, `${project.anchorName} differentiation opportunities`),
+        React.createElement("button", { className: "small", onClick: refreshOpportunities, disabled: refreshingOpps },
+          React.createElement("i", { className: `ti ti-refresh ${refreshingOpps ? "spin" : ""}`, "aria-hidden": "true" }),
+          refreshingOpps ? "Synthesizing…" : "Regenerate"
+        )
+      ),
+      (project.opportunities && project.opportunities.length > 0)
+        ? React.createElement("div", { className: "opp-grid" },
+            project.opportunities.map((o, i) => React.createElement("div", { key: i, className: "opp-card" },
+              React.createElement("div", { className: "opp-num" }, String(i + 1).padStart(2, "0")),
+              React.createElement("div", { className: "opp-title" }, o.title),
+              React.createElement("div", { className: "opp-body" }, o.body)
+            ))
+          )
+        : React.createElement("div", { className: "opp-empty" },
+            "No opportunities generated yet. Click Regenerate to synthesize differentiation ideas from the current brand set."
+          )
+    ),
+
+    React.createElement("div", { className: "footer-note" },
+      React.createElement("span", null, `Research compiled for ${project.anchorName} · powered by Claude via a server-side proxy`),
+      React.createElement("span", null, "Data stored only in this browser's local storage")
+    ),
+
+    toast && React.createElement("div", { className: "toast" }, toast.text)
+  );
+}
+
+function CrossThemesSection({ crossThemes, onRefresh, refreshing }) {
+  const hasData = crossThemes && (
+    (crossThemes.messagingAngles && crossThemes.messagingAngles.length) ||
+    (crossThemes.contentThemes && crossThemes.contentThemes.length) ||
+    (crossThemes.toneClusters && crossThemes.toneClusters.length)
+  );
+
+  function group(title, icon, items) {
+    if (!items || items.length === 0) return null;
+    return React.createElement("div", { style: { marginBottom: 20 } },
+      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 7, marginBottom: 11 } },
+        React.createElement("i", { className: `ti ${icon}`, style: { fontSize: 14, color: "var(--text-3)" }, "aria-hidden": "true" }),
+        React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, color: "var(--text-2)" } }, title)
+      ),
+      React.createElement("div", { className: "opp-grid" },
+        items.map((item, i) => React.createElement("div", { key: i, className: "opp-card" },
+          React.createElement("div", { className: "opp-title", style: { marginBottom: 8 } }, item.label),
+          item.brands && item.brands.length > 0 && React.createElement("div", { className: "theme-pills", style: { marginBottom: 8 } },
+            item.brands.map(b => React.createElement("span", { key: b, className: "theme-pill" }, b))
+          ),
+          React.createElement("div", { className: "opp-body" }, item.body)
+        ))
+      )
+    );
+  }
+
+  return React.createElement("div", { className: "opp-section" },
+    React.createElement("div", { className: "opp-section-head" },
+      React.createElement("div", { className: "eyebrow", style: { marginBottom: 0 } }, "Cross-brand themes"),
+      React.createElement("button", { className: "small", onClick: onRefresh, disabled: refreshing },
+        React.createElement("i", { className: `ti ti-refresh ${refreshing ? "spin" : ""}`, "aria-hidden": "true" }),
+        refreshing ? "Analyzing…" : "Regenerate"
+      )
+    ),
+    hasData
+      ? React.createElement(React.Fragment, null,
+          group("Common messaging angles", "ti-message-2", crossThemes.messagingAngles),
+          group("Recurring content themes", "ti-stack-2", crossThemes.contentThemes),
+          group("Tone-of-voice clusters", "ti-vocabulary", crossThemes.toneClusters)
+        )
+      : React.createElement("div", { className: "opp-empty" },
+          "No cross-brand theme analysis yet. Click Regenerate to identify shared messaging angles, content themes, and tonal patterns across the full brand set."
+        )
+  );
+}
+
+function SettingsPanel({ onClose, onNewProject }) {
+  return React.createElement("div", { className: "settings-panel" },
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, gap: 12 } },
+      React.createElement("div", { style: { fontWeight: 600, fontSize: 14 } }, "Settings"),
+      React.createElement("button", { className: "ghost small", onClick: onClose, "aria-label": "Close settings" },
+        React.createElement("i", { className: "ti ti-x", "aria-hidden": "true" })
+      )
+    ),
+    React.createElement("div", null,
+      React.createElement("div", { style: { fontWeight: 600, fontSize: 13, marginBottom: 6 } }, "Start a new project"),
+      React.createElement("div", { className: "body-text", style: { fontSize: 12.5, marginBottom: 10 } },
+        "This discards the current brand and competitor set and returns you to setup."
+      ),
+      React.createElement("button", {
+        className: "small", style: { color: "var(--red)" },
+        onClick: () => { if (confirm("Start a new project? This discards all current research.")) onNewProject(); }
+      },
+        React.createElement("i", { className: "ti ti-trash", "aria-hidden": "true" }), "New project"
+      )
+    )
+  );
+}
+
+function DetailPanel({ brand, activeTab, setActiveTab, onClose, onRefresh, refreshing, tierBadge }) {
+  return React.createElement("div", { className: "detail-panel" },
+    React.createElement("div", { className: "detail-head" },
+      React.createElement("div", null,
+        React.createElement("div", { className: "detail-title-row" },
+          React.createElement("span", { className: "detail-name" }, brand.name),
+          brand.isAnchor && React.createElement("span", { className: "anchor-pip" }, "YOU"),
+          tierBadge(brand.tier)
+        ),
+        React.createElement("div", { className: "detail-tagline" }, brand.tagline)
+      ),
+      React.createElement("div", { style: { display: "flex", gap: 8, flexShrink: 0 } },
+        React.createElement("button", { className: "small", onClick: onRefresh, disabled: refreshing },
+          React.createElement("i", { className: `ti ti-refresh ${refreshing ? "spin" : ""}`, "aria-hidden": "true" }), "Refresh"
+        ),
+        React.createElement("button", { className: "ghost small", onClick: onClose },
+          React.createElement("i", { className: "ti ti-x", "aria-hidden": "true" }), "Close"
+        )
+      )
+    ),
+    React.createElement("div", { className: "tab-row" },
+      ["overview", "content", "differentiation"].map(tab => React.createElement("button", {
+        key: tab,
+        className: `tab-btn ${activeTab === tab ? "active" : ""}`,
+        onClick: () => setActiveTab(tab)
+      }, tab.charAt(0).toUpperCase() + tab.slice(1)))
+    ),
+    React.createElement("div", { className: "tab-body" },
+      activeTab === "overview" && React.createElement("div", { className: "two-col" },
+        React.createElement("div", null,
+          React.createElement("div", { className: "eyebrow" }, "Key message"),
+          React.createElement("div", { className: "body-text", style: { color: "var(--text-1)" } }, brand.keyMessage),
+          React.createElement("div", { style: { marginTop: 18 } },
+            React.createElement("div", { className: "eyebrow" }, "Themes"),
+            React.createElement("div", { className: "theme-pills" },
+              (brand.themes || []).map(t => React.createElement("span", { key: t, className: "theme-pill" }, t))
+            )
+          )
+        ),
+        React.createElement("div", null,
+          React.createElement("div", { className: "eyebrow" }, "Recent activity"),
+          React.createElement("div", { className: "body-text" }, brand.notable),
+          React.createElement("div", { className: "metric-grid" },
+            [
+              { label: "LinkedIn", val: (brand.linkedin || 0) + "K", icon: "ti-brand-linkedin" },
+              { label: "Instagram", val: (brand.instagram || 0) + "K", icon: "ti-brand-instagram" },
+              { label: "Activity", val: brand.activity, icon: "ti-activity" }
+            ].map(m => React.createElement("div", { key: m.label, className: "metric-box" },
+              React.createElement("div", { className: "metric-box-label" },
+                React.createElement("i", { className: `ti ${m.icon}`, "aria-hidden": "true" }), m.label
+              ),
+              React.createElement("div", { className: "metric-box-val" }, m.val)
+            ))
+          )
+        )
+      ),
+      activeTab === "content" && React.createElement("div", { className: "two-col" },
+        React.createElement("div", null,
+          React.createElement("div", { className: "eyebrow" }, "Content formats"),
+          (brand.formats || []).map((f, i) => React.createElement("div", { key: i, className: "format-row" },
+            React.createElement("i", { className: "ti ti-file-text", style: { color: "var(--text-3)", marginTop: 2 }, "aria-hidden": "true" }),
+            React.createElement("span", null, f)
+          ))
+        ),
+        React.createElement("div", null,
+          React.createElement("div", { className: "eyebrow" }, "Tone of voice"),
+          React.createElement("div", { className: "tone-chip" },
+            React.createElement("span", { style: { width: 9, height: 9, borderRadius: "50%", background: TONE_COLORS[brand.tone] || "#888" } }),
+            React.createElement("span", { style: { fontWeight: 600, color: TONE_COLORS[brand.tone] || "var(--text-1)" } }, brand.tone)
+          ),
+          React.createElement("div", { className: "eyebrow", style: { marginTop: 14 } }, "Channel scale"),
+          [
+            { name: "LinkedIn", val: brand.linkedin || 0, max: 30000 },
+            { name: "Instagram", val: brand.instagram || 0, max: 250 },
+            { name: "YouTube", val: brand.youtube || 0, max: 200 }
+          ].map(ch => React.createElement("div", { key: ch.name, className: "channel-bar-row" },
+            React.createElement("div", { className: "channel-bar-head" },
+              React.createElement("span", null, ch.name), React.createElement("span", null, ch.val + "K")
+            ),
+            React.createElement("div", { className: "channel-bar-track" },
+              React.createElement("div", {
+                className: "channel-bar-fill",
+                style: { width: `${Math.min(100, Math.round((ch.val / ch.max) * 100))}%` }
+              })
+            )
+          ))
+        )
+      ),
+      activeTab === "differentiation" && React.createElement("div", null,
+        React.createElement("div", { className: "eyebrow" }, brand.isAnchor ? "What sets you apart" : "What makes them distinct vs your brand"),
+        React.createElement("div", { className: `diff-block ${!brand.differentiator ? "empty" : ""}` }, brand.differentiator || "No differentiation summary yet.")
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement("div", { className: "app-shell" }, React.createElement(Root))
+);
+
+</script>
+</body>
+</html>
