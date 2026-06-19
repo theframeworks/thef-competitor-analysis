@@ -1,0 +1,20 @@
+# Reduce Cloud Build source upload size (mirrors .dockerignore where relevant).
+.git
+.gitignore
+.cursor
+terminals
+
+node_modules
+**/node_modules
+dist
+**/dist
+
+.env
+.env.*
+!.env.example
+
+*.md
+issues/
+plans/
+docs/
+data/
