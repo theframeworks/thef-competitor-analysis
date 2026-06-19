@@ -1,4 +1,4 @@
-FROM node:26-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY server ./server
 
 RUN npm run build
 
-FROM node:26-alpine AS runner
+FROM node:24-alpine AS runner
 
 WORKDIR /app
 
@@ -28,6 +28,9 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/client/dist ./client/dist
 COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/server/prisma ./server/prisma
+
+RUN npm run db:generate --workspace=server
 
 EXPOSE 8080
 
