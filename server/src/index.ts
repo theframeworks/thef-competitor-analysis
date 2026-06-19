@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { projectsRouter } from './routes/projects.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -16,6 +17,8 @@ app.use(express.json({ limit: '10mb' }));
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
+
+app.use('/api/projects', projectsRouter);
 
 app.post('/api/messages', async (req, res) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
