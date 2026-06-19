@@ -8,7 +8,6 @@ interface DetailPanelProps {
   brand: Brand;
   activeTab: DetailTab;
   setActiveTab: (tab: DetailTab) => void;
-  onClose: () => void;
   onRefresh: () => void;
   refreshing: boolean;
   tiers: string[];
@@ -18,7 +17,6 @@ export function DetailPanel({
   brand,
   activeTab,
   setActiveTab,
-  onClose,
   onRefresh,
   refreshing,
   tiers,
@@ -45,9 +43,6 @@ export function DetailPanel({
           >
             <i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />{' '}
             Refresh
-          </button>
-          <button type="button" className="ghost small" onClick={onClose}>
-            <i className="ti ti-x" aria-hidden="true" /> Close
           </button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   researchCrossThemes,
   researchOpportunities,
 } from '../lib/research';
+import { BackLink } from './shared/BackLink';
 
 interface SetupScreenProps {
   onStart: (project: Project) => void;
@@ -196,12 +197,9 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
 
   return (
     <div className="setup-wrap">
-      {onBack && (
-        <button type="button" className="ghost small setup-back" onClick={handleBack}>
-          <i className="ti ti-arrow-left" aria-hidden="true" /> Back to library
-        </button>
-      )}
-      <div className="setup-eyebrow">Competitor intelligence monitor</div>
+      {onBack && <BackLink label="Back to library" onClick={handleBack} />}
+      <div className="setup-main">
+        <div className="setup-eyebrow">Competitor intelligence monitor</div>
       <div className="setup-title">Build a brand intelligence dashboard</div>
       <div className="setup-sub">
         Enter your brand and the competitors you want to track. Claude will research each
@@ -277,6 +275,7 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -168,8 +168,13 @@ textarea {
 .setup-wrap {
   max-width: 640px;
   margin: 0 auto;
-  padding: 64px 24px;
-  min-height: 100vh;
+  padding: 0 0 64px;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+}
+.setup-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -993,9 +998,32 @@ textarea {
   padding-right: 6px;
 }
 
-.setup-back {
-  margin-bottom: 20px;
-  padding-left: 0;
+.page-nav {
+  margin-bottom: 24px;
+}
+
+button.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  width: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+button.back-link:hover:not(:disabled) {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-1);
+  transform: none;
+}
+button.back-link:active:not(:disabled) {
+  transform: none;
 }
 
 .save-prompt-overlay {

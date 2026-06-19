@@ -11,7 +11,7 @@ data/projects/   Bookmark JSON files (one file per saved session)
 legacy/          Deprecated Apps Script app (index.html, Code.gs)
 ```
 
-A single Express process serves the API and, in production, the built client assets. Local development runs Vite (port 5173) with `/api` proxied to Express (port 3001).
+A single Express process serves the API and, in production, the built client assets. Local development runs Vite (port 5173) with `/api` proxied to Express (default port 8080).
 
 **Bookmark storage:** In production, bookmarks are committed to `data/projects/` via the GitHub Contents API. Locally, the server auto-detects the best backend: GitHub API when `GITHUB_TOKEN` or `gh auth token` is available, otherwise plain JSON files on disk under `data/projects/`.
 
@@ -24,12 +24,12 @@ A single Express process serves the API and, in production, the built client ass
 ```bash
 git clone <repo-url>
 cd thef-competitor-analysis
-cp .env.example .env   # at minimum set ANTHROPIC_API_KEY and PORT=3001
+cp .env.example .env   # at minimum set ANTHROPIC_API_KEY (and PORT if 8080 is taken)
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The Vite dev server proxies `/api/*` to Express on port 3001.
+Open http://localhost:5173. The Vite dev server proxies `/api/*` to Express (default port 8080; set `PORT` in `.env` if you need another).
 
 On startup the server logs which bookmark backend is active (`local files` or `GitHub Contents API`).
 
@@ -51,7 +51,7 @@ On startup the server logs which bookmark backend is active (`local files` or `G
 | `GITHUB_REPO` | No (local) / Yes (prod) | `git remote origin` | Repository in `owner/repo` form |
 | `GITHUB_DATA_PATH` | No | `data/projects` | Path to bookmark JSON files in the repo |
 | `BOOKMARK_STORAGE` | No | auto | `github`, `local`, or auto-detect in dev |
-| `PORT` | No | `8080` (prod), `3001` (dev) | Express listen port |
+| `PORT` | No | `8080` | Express listen port (Vite dev proxy reads the same value) |
 | `NODE_ENV` | No | — | Set to `production` for static asset serving |
 
 ## Scripts
