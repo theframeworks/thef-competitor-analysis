@@ -1,12 +1,12 @@
 import { Router } from 'express';
+import { StorageError } from '../db/errors.js';
 import {
-  StorageError,
   createProject,
   deleteProject,
   getProject,
   listProjects,
   updateProject,
-} from '../storage/index.js';
+} from '../db/projects.js';
 import type { CreateProjectInput, Project, UpdateProjectInput } from '../types/project.js';
 import { generateProjectId } from '../utils/slugify.js';
 

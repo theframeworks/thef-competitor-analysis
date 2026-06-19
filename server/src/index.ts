@@ -16,5 +16,5 @@ const databaseUrl = process.env.DATABASE_URL!;
 
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
-  console.log(`Bookmark storage: ${describeDatabase(databaseUrl)}`);
+  console.log(`Database: ${describeDatabase(databaseUrl)}`);
 });

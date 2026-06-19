@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { getPrisma } from '../db/client.js';
-import { StorageError } from '../storage/errors.js';
+import { StorageError } from './errors.js';
 import type {
   Brand,
   CreateProjectInput,
