@@ -7,7 +7,7 @@ import {
   getProject,
   listProjects,
   updateProject,
-} from '../github/storage.js';
+} from '../storage/index.js';
 import type { CreateProjectInput, Project, UpdateProjectInput } from '../types/project.js';
 import { generateProjectId } from '../utils/slugify.js';
 

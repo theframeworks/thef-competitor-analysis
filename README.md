@@ -13,32 +13,44 @@ legacy/          Deprecated Apps Script app (index.html, Code.gs)
 
 A single Express process serves the API and, in production, the built client assets. Local development runs Vite (port 5173) with `/api` proxied to Express (port 3001).
 
-**Bookmark storage:** `POST /api/projects` writes `{id}.json` under `data/projects/` through the GitHub Contents API. The same code path runs locally and in production — there is no separate database.
+**Bookmark storage:** In production, bookmarks are committed to `data/projects/` via the GitHub Contents API. Locally, the server auto-detects the best backend: GitHub API when `GITHUB_TOKEN` or `gh auth token` is available, otherwise plain JSON files on disk under `data/projects/`.
 
 **Deploy skip:** Cloud Build triggers ignore `data/**`, so bookmark-only commits do not redeploy. Commit messages also include `[skip ci]` as a secondary safeguard (`Save bookmark: … [skip ci]`, `Refresh bookmark: … [skip ci]`).
 
 ## Local development
 
-**Prerequisites:** Node.js 22+, npm, a GitHub personal access token with `contents: read/write` on this repo, and an Anthropic API key.
+**Prerequisites:** Node.js 26+, npm, and an Anthropic API key. GitHub credentials are optional locally — see bookmark storage below.
 
 ```bash
 git clone <repo-url>
 cd thef-competitor-analysis
-cp .env.example .env   # fill in secrets (see table below)
+cp .env.example .env   # at minimum set ANTHROPIC_API_KEY and PORT=3001
 npm install
 npm run dev
 ```
 
 Open http://localhost:5173. The Vite dev server proxies `/api/*` to Express on port 3001.
 
+On startup the server logs which bookmark backend is active (`local files` or `GitHub Contents API`).
+
+### Local bookmark storage options
+
+| Setup | What happens |
+|---|---|
+| Nothing GitHub-related in `.env`, no `gh` login | Bookmarks save to `data/projects/*.json` on disk |
+| `gh auth login` (GitHub CLI) | Token auto-detected; bookmarks commit via GitHub API |
+| `GITHUB_TOKEN=ghp_...` in `.env` | Bookmarks commit via GitHub API |
+| `BOOKMARK_STORAGE=local` | Force disk storage even if a token exists |
+
 ## Environment variables
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | Yes | — | Server-side Anthropic API key |
-| `GITHUB_TOKEN` | Yes | — | PAT for GitHub Contents API (`contents: read/write`) |
-| `GITHUB_REPO` | Yes | — | Repository in `owner/repo` form |
+| `GITHUB_TOKEN` | Prod only | `gh auth token` | PAT for GitHub Contents API (`contents: read/write`) |
+| `GITHUB_REPO` | No (local) / Yes (prod) | `git remote origin` | Repository in `owner/repo` form |
 | `GITHUB_DATA_PATH` | No | `data/projects` | Path to bookmark JSON files in the repo |
+| `BOOKMARK_STORAGE` | No | auto | `github`, `local`, or auto-detect in dev |
 | `PORT` | No | `8080` (prod), `3001` (dev) | Express listen port |
 | `NODE_ENV` | No | — | Set to `production` for static asset serving |
 
