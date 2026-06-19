@@ -1,6 +1,6 @@
 import { RESEARCH_SYSTEM_PROMPT } from './anthropic-system';
 
-export const CLAUDE_MODEL = 'claude-sonnet-4-5-20250929';
+export const CLAUDE_MODEL = 'claude-sonnet-4-6';
 
 export interface AnthropicCacheControl {
   type: 'ephemeral';
