@@ -959,25 +959,29 @@ textarea {
 }
 .bookmark-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-bg-card);
-  padding: 6px 8px 6px 0;
+  align-items: stretch;
+  gap: 8px;
 }
 .bookmark-main {
   flex: 1;
   text-align: left;
-  background: transparent;
-  border: none;
-  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg-card);
+  padding: 14px 16px;
   color: inherit;
   display: block;
   white-space: normal;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 .bookmark-main:hover:not(:disabled) {
   background: var(--color-bg-card-hover);
+  border-color: var(--color-border-strong);
+}
+.bookmark-delete {
+  align-self: center;
+  flex-shrink: 0;
 }
 .bookmark-name {
   font-size: 15px;
@@ -991,11 +995,6 @@ textarea {
 }
 .bookmark-dot {
   margin: 0 6px;
-}
-.bookmark-actions {
-  display: flex;
-  gap: 4px;
-  padding-right: 6px;
 }
 
 .page-nav {
@@ -1074,10 +1073,9 @@ button.back-link:active:not(:disabled) {
   .bookmark-row {
     flex-direction: column;
     align-items: stretch;
-    padding: 0;
   }
-  .bookmark-actions {
-    padding: 0 10px 10px;
+  .bookmark-delete {
+    align-self: flex-end;
   }
   .two-col {
     grid-template-columns: 1fr;

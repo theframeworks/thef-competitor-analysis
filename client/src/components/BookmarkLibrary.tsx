@@ -121,42 +121,32 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
               >
                 <div className="bookmark-name">{bookmark.name}</div>
                 <div className="bookmark-meta">
-                  <span>{bookmark.anchorName}</span>
-                  <span className="bookmark-dot">·</span>
-                  <span>Updated {fmtTime(bookmark.updatedAt)}</span>
-                </div>
-              </button>
-              <div className="bookmark-actions">
-                <button
-                  type="button"
-                  className="ghost small"
-                  onClick={() => void handleOpen(bookmark.id)}
-                  disabled={loadingId === bookmark.id || deletingId === bookmark.id}
-                >
                   {loadingId === bookmark.id ? (
                     <>
                       <i className="ti ti-loader-2 spin" aria-hidden="true" /> Opening…
                     </>
                   ) : (
                     <>
-                      <i className="ti ti-arrow-right" aria-hidden="true" /> Open
+                      <span>{bookmark.anchorName}</span>
+                      <span className="bookmark-dot">·</span>
+                      <span>Updated {fmtTime(bookmark.updatedAt)}</span>
                     </>
                   )}
-                </button>
-                <button
-                  type="button"
-                  className="ghost small btn-danger"
-                  onClick={() => void handleDelete(bookmark.id, bookmark.name)}
-                  disabled={loadingId === bookmark.id || deletingId === bookmark.id}
-                  aria-label={`Delete ${bookmark.name}`}
-                >
-                  {deletingId === bookmark.id ? (
-                    <i className="ti ti-loader-2 spin" aria-hidden="true" />
-                  ) : (
-                    <i className="ti ti-trash" aria-hidden="true" />
-                  )}
-                </button>
-              </div>
+                </div>
+              </button>
+              <button
+                type="button"
+                className="ghost small btn-danger bookmark-delete"
+                onClick={() => void handleDelete(bookmark.id, bookmark.name)}
+                disabled={loadingId === bookmark.id || deletingId === bookmark.id}
+                aria-label={`Delete ${bookmark.name}`}
+              >
+                {deletingId === bookmark.id ? (
+                  <i className="ti ti-loader-2 spin" aria-hidden="true" />
+                ) : (
+                  <i className="ti ti-trash" aria-hidden="true" />
+                )}
+              </button>
             </div>
           ))}
         </div>
