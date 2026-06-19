@@ -9,7 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
-const port = Number(process.env.PORT) || 3001;
+const port = Number(process.env.PORT) || 8080;
+const isProduction = process.env.NODE_ENV === 'production';
+const clientDist = path.resolve(__dirname, '../../client/dist');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -57,6 +59,17 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
+if (isProduction) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      next();
+      return;
+    }
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
 app.listen(port, () => {
-  console.log(`API server listening on http://localhost:${port}`);
+  console.log(`Server listening on http://localhost:${port}`);
 });
