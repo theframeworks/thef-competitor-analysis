@@ -1,12 +1,12 @@
 interface SettingsPanelProps {
   onClose: () => void;
-  onNewProject: () => void;
+  onBackToLibrary: () => void;
 }
 
-export function SettingsPanel({ onClose, onNewProject }: SettingsPanelProps) {
-  function handleNewProject() {
-    if (confirm('Start a new project? This discards all current research.')) {
-      onNewProject();
+export function SettingsPanel({ onClose, onBackToLibrary }: SettingsPanelProps) {
+  function handleBackToLibrary() {
+    if (confirm('Return to the bookmark library? Unsaved changes stay in this browser session only.')) {
+      onBackToLibrary();
     }
   }
 
@@ -24,16 +24,16 @@ export function SettingsPanel({ onClose, onNewProject }: SettingsPanelProps) {
         </button>
       </div>
       <div>
-        <div className="settings-section-title">Start a new project</div>
+        <div className="settings-section-title">Bookmark library</div>
         <div className="body-text settings-section-desc">
-          This discards the current brand and competitor set and returns you to setup.
+          Return to saved bookmarks or start new research.
         </div>
         <button
           type="button"
-          className="small btn-danger"
-          onClick={handleNewProject}
+          className="small"
+          onClick={handleBackToLibrary}
         >
-          <i className="ti ti-trash" aria-hidden="true" /> New project
+          <i className="ti ti-bookmark" aria-hidden="true" /> Back to library
         </button>
       </div>
     </div>

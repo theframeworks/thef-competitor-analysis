@@ -195,6 +195,18 @@ export async function createProject(
   return project;
 }
 
+export async function deleteProject(id: string): Promise<void> {
+  const config = getGitHubConfig();
+  const path = projectFilePath(config.dataPath, id);
+  const { project, sha } = await readProjectFile(id);
+  const message = `Delete bookmark: ${project.name} [skip ci]`;
+
+  await githubRequest(path, {
+    method: 'DELETE',
+    body: JSON.stringify({ message, sha }),
+  });
+}
+
 export async function updateProject(project: Project): Promise<Project> {
   const config = getGitHubConfig();
   const path = projectFilePath(config.dataPath, project.id);

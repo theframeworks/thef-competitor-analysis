@@ -36,6 +36,8 @@ export interface CrossThemes {
 }
 
 export interface Project {
+  id?: string;
+  name?: string;
   anchorName: string;
   brands: Brand[];
   opportunities: Opportunity[];
@@ -43,6 +45,10 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ProjectSummary = Required<
+  Pick<Project, 'id' | 'name' | 'anchorName' | 'createdAt' | 'updatedAt'>
+>;
 
 export interface BrandResearchData {
   tagline: string;

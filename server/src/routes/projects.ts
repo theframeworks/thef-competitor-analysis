@@ -3,6 +3,7 @@ import { GitHubConfigError } from '../github/config.js';
 import {
   GitHubApiError,
   createProject,
+  deleteProject,
   getProject,
   listProjects,
   updateProject,
@@ -95,6 +96,18 @@ projectsRouter.post('/', async (req, res) => {
     const id = generateProjectId(req.body.anchorName, req.body.name);
     const project = await createProject(id, req.body);
     res.status(201).json(project);
+  } catch (err) {
+    if (!handleGitHubError(err, res)) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      res.status(500).json({ error: message });
+    }
+  }
+});
+
+projectsRouter.delete('/:id', async (req, res) => {
+  try {
+    await deleteProject(req.params.id);
+    res.status(204).send();
   } catch (err) {
     if (!handleGitHubError(err, res)) {
       const message = err instanceof Error ? err.message : 'Unknown error';
