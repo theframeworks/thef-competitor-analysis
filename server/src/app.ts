@@ -63,7 +63,7 @@ export function createApp(options: CreateAppOptions = {}): express.Application {
 
   if (isProduction) {
     app.use(express.static(clientDist));
-    app.get('*', (req, res, next) => {
+    app.get('{*path}', (req, res, next) => {
       if (req.path.startsWith('/api')) {
         next();
         return;
