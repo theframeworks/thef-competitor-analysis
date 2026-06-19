@@ -19,7 +19,7 @@ interface DashboardProps {
   isSaved: boolean;
   saving: boolean;
   onSaveBookmark: (name: string) => Promise<void>;
-  onPersist: (project: Project) => Promise<void>;
+  onPersist: (project: Project) => Promise<boolean>;
   onBackToLibrary: () => void;
 }
 
@@ -49,6 +49,8 @@ export function Dashboard({
   const [refreshingOpps, setRefreshingOpps] = useState(false);
   const [refreshingThemes, setRefreshingThemes] = useState(false);
   const cancelRef = useRef(false);
+  const projectRef = useRef(project);
+  projectRef.current = project;
 
   const brands = project.brands;
   const tiers = ['All', ...Array.from(new Set(brands.map((b) => b.tier))).sort()];
@@ -61,10 +63,11 @@ export function Dashboard({
       opportunities: newOpps !== undefined ? newOpps : prev.opportunities,
       updatedAt,
     }));
+    const current = projectRef.current;
     return {
-      ...project,
-      brands: newBrands ?? project.brands,
-      opportunities: newOpps !== undefined ? newOpps : project.opportunities,
+      ...current,
+      brands: newBrands ?? current.brands,
+      opportunities: newOpps !== undefined ? newOpps : current.opportunities,
       updatedAt,
     };
   }
@@ -135,20 +138,20 @@ export function Dashboard({
     setRefreshing(false);
     setRefreshProgress({ current: 0, total: 0, brand: '' });
     const finalProject = {
-      ...project,
+      ...projectRef.current,
       brands: updated,
       updatedAt: new Date().toISOString(),
     };
     touchUpdated(updated);
-    if (project.id) {
-      await onPersist(finalProject);
+    const persisted = project.id ? await onPersist(finalProject) : true;
+    if (persisted) {
+      setToast(
+        errorCount > 0
+          ? `Refreshed with ${errorCount} error(s). Cached data kept for those brands.`
+          : 'All brands refreshed successfully.',
+      );
     }
-    setToast(
-      errorCount > 0
-        ? `Refreshed with ${errorCount} error(s). Cached data kept for those brands.`
-        : 'All brands refreshed successfully.',
-    );
-  }, [brands, project, onPersist]);
+  }, [brands, project.id, onPersist]);
 
   const refreshOne = useCallback(
     async (brandId: string) => {
@@ -165,10 +168,10 @@ export function Dashboard({
         );
         const updated = brands.map((b) => (b.id === brandId ? { ...b, ...parsed } : b));
         const finalProject = touchUpdated(updated);
-        if (project.id) {
-          await onPersist(finalProject);
+        const persisted = project.id ? await onPersist(finalProject) : true;
+        if (persisted) {
+          setToast(`${brand.name} refreshed.`);
         }
-        setToast(`${brand.name} refreshed.`);
       } catch (e) {
         const message = e instanceof Error ? e.message : 'Unknown error';
         setToast(`Could not refresh ${brand.name}: ${message}`);
@@ -184,10 +187,10 @@ export function Dashboard({
     try {
       const opps = await researchOpportunities(project.anchorName, brands);
       const finalProject = touchUpdated(undefined, opps);
-      if (project.id) {
-        await onPersist(finalProject);
+      const persisted = project.id ? await onPersist(finalProject) : true;
+      if (persisted) {
+        setToast('Opportunities regenerated.');
       }
-      setToast('Opportunities regenerated.');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error';
       setToast(`Could not regenerate opportunities: ${message}`);
@@ -200,16 +203,16 @@ export function Dashboard({
     try {
       const themes = await researchCrossThemes(project.anchorName, brands);
       const updatedAt = new Date().toISOString();
-      const finalProject = { ...project, crossThemes: themes, updatedAt };
+      const finalProject = { ...projectRef.current, crossThemes: themes, updatedAt };
       updateProject((prev) => ({
         ...prev,
         crossThemes: themes,
         updatedAt,
       }));
-      if (project.id) {
-        await onPersist(finalProject);
+      const persisted = project.id ? await onPersist(finalProject) : true;
+      if (persisted) {
+        setToast('Cross-brand themes regenerated.');
       }
-      setToast('Cross-brand themes regenerated.');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error';
       setToast(`Could not regenerate themes: ${message}`);
@@ -402,7 +405,7 @@ export function Dashboard({
       <CrossThemesSection
         crossThemes={project.crossThemes}
         onRefresh={refreshCrossThemes}
-        refreshing={refreshingThemes}
+        refreshing={refreshingThemes || refreshing}
       />
 
       <div className="opp-section">
@@ -414,7 +417,7 @@ export function Dashboard({
             type="button"
             className="small"
             onClick={refreshOpportunities}
-            disabled={refreshingOpps}
+            disabled={refreshingOpps || refreshing}
           >
             <i
               className={`ti ti-refresh ${refreshingOpps ? 'spin' : ''}`}

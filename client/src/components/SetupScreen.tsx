@@ -34,7 +34,15 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
       setError('Enter at least one competitor.');
       return;
     }
-    if (competitors.length > 30) {
+    const anchorTrimmed = anchor.trim();
+    const competitorsDeduped = competitors.filter(
+      (name) => name.toLowerCase() !== anchorTrimmed.toLowerCase(),
+    );
+    if (competitorsDeduped.length === 0) {
+      setError('Enter at least one competitor other than your brand.');
+      return;
+    }
+    if (competitorsDeduped.length > 30) {
       setError('Please limit to 30 competitors at a time.');
       return;
     }
@@ -43,13 +51,15 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
     cancelRef.current = false;
     setBuildLog([]);
 
-    const anchorTrimmed = anchor.trim();
-    const allNames = [anchorTrimmed, ...competitors];
+    const allNames = [anchorTrimmed, ...competitorsDeduped];
     setBuildProgress({ current: 0, total: allNames.length + 2 });
     const brands: Project['brands'] = [];
 
     for (let i = 0; i < allNames.length; i++) {
-      if (cancelRef.current) return;
+      if (cancelRef.current) {
+        setBuilding(false);
+        return;
+      }
       const name = allNames[i];
       const isAnchor = i === 0;
       setBuildLog((l) => [...l, { text: `Researching ${name}…`, status: 'pending' }]);
@@ -87,6 +97,11 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
       await new Promise((r) => setTimeout(r, 300));
     }
 
+    if (cancelRef.current) {
+      setBuilding(false);
+      return;
+    }
+
     let opportunities: Project['opportunities'] = [];
     setBuildLog((l) => [
       ...l,
@@ -110,6 +125,11 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
       );
     }
     setBuildProgress({ current: allNames.length + 1, total: allNames.length + 2 });
+
+    if (cancelRef.current) {
+      setBuilding(false);
+      return;
+    }
 
     let crossThemes: Project['crossThemes'] = null;
     setBuildLog((l) => [
@@ -135,7 +155,19 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
     }
     setBuildProgress({ current: allNames.length + 2, total: allNames.length + 2 });
 
+    if (cancelRef.current) {
+      setBuilding(false);
+      return;
+    }
+
     await new Promise((r) => setTimeout(r, 400));
+
+    if (cancelRef.current) {
+      setBuilding(false);
+      return;
+    }
+
+    setBuilding(false);
     onStart({
       anchorName: anchorTrimmed,
       brands,
@@ -146,7 +178,18 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
     });
   }
 
-  const brandCount = competitors.length + (anchor.trim() ? 1 : 0);
+  function handleBack() {
+    if (building) {
+      cancelRef.current = true;
+    }
+    onBack?.();
+  }
+
+  const anchorTrimmed = anchor.trim();
+  const competitorsDeduped = competitors.filter(
+    (name) => !anchorTrimmed || name.toLowerCase() !== anchorTrimmed.toLowerCase(),
+  );
+  const brandCount = competitorsDeduped.length + (anchorTrimmed ? 1 : 0);
   const progressPct = buildProgress.total
     ? Math.round((buildProgress.current / buildProgress.total) * 100)
     : 0;
@@ -154,7 +197,7 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
   return (
     <div className="setup-wrap">
       {onBack && (
-        <button type="button" className="ghost small setup-back" onClick={onBack}>
+        <button type="button" className="ghost small setup-back" onClick={handleBack}>
           <i className="ti ti-arrow-left" aria-hidden="true" /> Back to library
         </button>
       )}
@@ -193,8 +236,8 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
               rows={6}
             />
             <div className="setup-hint">
-              {competitors.length > 0
-                ? `${competitors.length} competitor${competitors.length === 1 ? '' : 's'} detected: ${competitors.slice(0, 6).join(', ')}${competitors.length > 6 ? '…' : ''}`
+              {competitorsDeduped.length > 0
+                ? `${competitorsDeduped.length} competitor${competitorsDeduped.length === 1 ? '' : 's'} detected: ${competitorsDeduped.slice(0, 6).join(', ')}${competitorsDeduped.length > 6 ? '…' : ''}`
                 : 'Separate names with commas or new lines. Up to 30 competitors.'}
             </div>
           </div>

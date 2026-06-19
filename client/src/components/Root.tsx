@@ -25,8 +25,8 @@ export function Root() {
     });
   }
 
-  const persistProject = useCallback(async (p: Project) => {
-    if (!p.id) return;
+  const persistProject = useCallback(async (p: Project): Promise<boolean> => {
+    if (!p.id) return true;
     try {
       const saved = await saveProject({
         ...p,
@@ -34,9 +34,11 @@ export function Root() {
         name: p.name ?? p.anchorName,
       });
       setProject(saved);
+      return true;
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Could not save bookmark';
       setToast(message);
+      return false;
     }
   }, []);
 

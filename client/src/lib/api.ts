@@ -30,14 +30,49 @@ export async function sendMessage(prompt: string, maxTokens: number): Promise<st
   return data.content?.find((block) => block.type === 'text')?.text ?? '';
 }
 
+function extractBalancedJson(text: string, open: '{' | '[', close: '}' | ']'): string | null {
+  const start = text.indexOf(open);
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === open) depth++;
+    if (char === close) {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+
+  return null;
+}
+
 export function extractJsonObject<T>(text: string): T {
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('No JSON found in response');
-  return JSON.parse(jsonMatch[0]) as T;
+  const json = extractBalancedJson(text, '{', '}');
+  if (!json) throw new Error('No JSON found in response');
+  return JSON.parse(json) as T;
 }
 
 export function extractJsonArray<T>(text: string): T {
-  const jsonMatch = text.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error('No JSON array found');
-  return JSON.parse(jsonMatch[0]) as T;
+  const json = extractBalancedJson(text, '[', ']');
+  if (!json) throw new Error('No JSON array found');
+  return JSON.parse(json) as T;
 }
