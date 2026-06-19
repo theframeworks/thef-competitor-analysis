@@ -1,24 +1,57 @@
+import { RESEARCH_SYSTEM_PROMPT } from './anthropic-system';
+
 export const CLAUDE_MODEL = 'claude-sonnet-4-5-20250929';
+
+export interface AnthropicCacheControl {
+  type: 'ephemeral';
+  ttl?: '5m' | '1h';
+}
 
 export interface AnthropicTextBlock {
   type: 'text';
   text: string;
+  cache_control?: AnthropicCacheControl;
+}
+
+export interface AnthropicMessageRequest {
+  model: string;
+  max_tokens: number;
+  system?: AnthropicTextBlock[];
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
 export interface AnthropicMessageResponse {
   content?: AnthropicTextBlock[];
   error?: { message?: string } | string;
+  usage?: {
+    cache_creation_input_tokens?: number;
+    cache_read_input_tokens?: number;
+  };
+}
+
+export function buildResearchRequest(
+  userPrompt: string,
+  maxTokens: number,
+): AnthropicMessageRequest {
+  return {
+    model: CLAUDE_MODEL,
+    max_tokens: maxTokens,
+    system: [
+      {
+        type: 'text',
+        text: RESEARCH_SYSTEM_PROMPT,
+        cache_control: { type: 'ephemeral' },
+      },
+    ],
+    messages: [{ role: 'user', content: userPrompt }],
+  };
 }
 
 export async function sendMessage(prompt: string, maxTokens: number): Promise<string> {
   const res = await fetch('/api/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: CLAUDE_MODEL,
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content: prompt }],
-    }),
+    body: JSON.stringify(buildResearchRequest(prompt, maxTokens)),
   });
 
   if (!res.ok) {
