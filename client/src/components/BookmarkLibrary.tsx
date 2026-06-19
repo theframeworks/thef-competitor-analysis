@@ -76,8 +76,7 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
           <div className="setup-eyebrow">Competitor intelligence monitor</div>
           <div className="setup-title">Saved research</div>
           <div className="setup-sub library-sub">
-            Open a bookmarked dashboard or start new competitor research. Bookmarks are shared
-            with the team via Git.
+            Open a bookmarked dashboard or start new competitor research.
           </div>
         </div>
         <button type="button" className="primary big" onClick={onNewResearch}>

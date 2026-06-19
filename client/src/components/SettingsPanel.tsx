@@ -1,15 +1,8 @@
 interface SettingsPanelProps {
   onClose: () => void;
-  onBackToLibrary: () => void;
 }
 
-export function SettingsPanel({ onClose, onBackToLibrary }: SettingsPanelProps) {
-  function handleBackToLibrary() {
-    if (confirm('Return to the bookmark library? Unsaved changes stay in this browser session only.')) {
-      onBackToLibrary();
-    }
-  }
-
+export function SettingsPanel({ onClose }: SettingsPanelProps) {
   return (
     <div className="settings-panel">
       <div className="settings-header">
@@ -23,18 +16,8 @@ export function SettingsPanel({ onClose, onBackToLibrary }: SettingsPanelProps) 
           <i className="ti ti-x" aria-hidden="true" />
         </button>
       </div>
-      <div>
-        <div className="settings-section-title">Bookmark library</div>
-        <div className="body-text settings-section-desc">
-          Return to saved bookmarks or start new research.
-        </div>
-        <button
-          type="button"
-          className="small"
-          onClick={handleBackToLibrary}
-        >
-          <i className="ti ti-bookmark" aria-hidden="true" /> Back to library
-        </button>
+      <div className="body-text settings-section-desc">
+        Use the back link above to return to saved bookmarks or start new research.
       </div>
     </div>
   );

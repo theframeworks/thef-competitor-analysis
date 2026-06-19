@@ -7,6 +7,7 @@ import { BrandListRow } from './BrandListRow';
 import { CrossThemesSection } from './CrossThemesSection';
 import { DetailPanel } from './DetailPanel';
 import { SettingsPanel } from './SettingsPanel';
+import { BackLink } from './shared/BackLink';
 import { Toast } from './shared/Toast';
 
 type DetailTab = 'overview' | 'content' | 'differentiation';
@@ -254,11 +255,19 @@ export function Dashboard({
         Competitor intelligence dashboard for {project.anchorName}
       </h1>
 
+      <BackLink
+        label={selectedBrand ? 'Back to list' : 'Back to library'}
+        onClick={() => {
+          if (selectedBrand) {
+            setSelected(null);
+            return;
+          }
+          onBackToLibrary();
+        }}
+      />
+
       {showSettings && (
-        <SettingsPanel
-          onClose={() => setShowSettings(false)}
-          onBackToLibrary={onBackToLibrary}
-        />
+        <SettingsPanel onClose={() => setShowSettings(false)} />
       )}
 
       <div className="topbar">
@@ -395,7 +404,6 @@ export function Dashboard({
           brand={selectedBrand}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          onClose={() => setSelected(null)}
           onRefresh={() => refreshOne(selectedBrand.id)}
           refreshing={refreshing}
           tiers={tiers}
