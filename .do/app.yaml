@@ -3,31 +3,28 @@ region: lon1
 
 services:
   - name: web
+    github:
+      repo: theframeworks/thef-competitor-analysis
+      branch: deploy/digitalocean
+      deploy_on_push: true
     environment_slug: node-js
     build_command: npm ci && npm run build
     run_command: npm start
     http_port: 8080
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
+    health_check:
+      http_path: /api/health
     envs:
       - key: ANTHROPIC_API_KEY
         scope: RUN_TIME
         type: SECRET
       - key: DATABASE_URL
         scope: RUN_TIME
-        type: SECRET
+        value: ${db.DATABASE_URL}
 
-# Link an existing managed Postgres cluster in the DO control panel, then set:
-#   DATABASE_URL = ${your-db-component-name.DATABASE_URL}
-#
-# Or add a dev database here (cheapest; fine for internal tooling):
-#
-# databases:
-#   - name: db
-#     engine: PG
-#     version: "16"
-#
-# Then reference it from the web service:
-#   - key: DATABASE_URL
-#     scope: RUN_TIME
-#     value: ${db.DATABASE_URL}
+databases:
+  - name: db
+    engine: PG
+    version: "16"
+    production: false
