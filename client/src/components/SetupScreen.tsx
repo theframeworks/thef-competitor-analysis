@@ -10,9 +10,10 @@ import {
 
 interface SetupScreenProps {
   onStart: (project: Project) => void;
+  onBack?: () => void;
 }
 
-export function SetupScreen({ onStart }: SetupScreenProps) {
+export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
   const [anchor, setAnchor] = useState('');
   const [competitorsRaw, setCompetitorsRaw] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +153,11 @@ export function SetupScreen({ onStart }: SetupScreenProps) {
 
   return (
     <div className="setup-wrap">
+      {onBack && (
+        <button type="button" className="ghost small setup-back" onClick={onBack}>
+          <i className="ti ti-arrow-left" aria-hidden="true" /> Back to library
+        </button>
+      )}
       <div className="setup-eyebrow">Competitor intelligence monitor</div>
       <div className="setup-title">Build a brand intelligence dashboard</div>
       <div className="setup-sub">

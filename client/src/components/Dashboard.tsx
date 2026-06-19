@@ -16,10 +16,22 @@ type SortMode = 'name' | 'activity' | 'linkedin';
 interface DashboardProps {
   project: Project;
   updateProject: (updater: Project | ((prev: Project) => Project)) => void;
-  onNewProject: () => void;
+  isSaved: boolean;
+  saving: boolean;
+  onSaveBookmark: (name: string) => Promise<void>;
+  onPersist: (project: Project) => Promise<void>;
+  onBackToLibrary: () => void;
 }
 
-export function Dashboard({ project, updateProject, onNewProject }: DashboardProps) {
+export function Dashboard({
+  project,
+  updateProject,
+  isSaved,
+  saving,
+  onSaveBookmark,
+  onPersist,
+  onBackToLibrary,
+}: DashboardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState('All');
   const [sort, setSort] = useState<SortMode>('name');
@@ -42,12 +54,37 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
   const tiers = ['All', ...Array.from(new Set(brands.map((b) => b.tier))).sort()];
 
   function touchUpdated(newBrands?: Brand[], newOpps?: Project['opportunities']) {
+    const updatedAt = new Date().toISOString();
     updateProject((prev) => ({
       ...prev,
       brands: newBrands ?? prev.brands,
       opportunities: newOpps !== undefined ? newOpps : prev.opportunities,
-      updatedAt: new Date().toISOString(),
+      updatedAt,
     }));
+    return {
+      ...project,
+      brands: newBrands ?? project.brands,
+      opportunities: newOpps !== undefined ? newOpps : project.opportunities,
+      updatedAt,
+    };
+  }
+
+  function promptBookmarkName(): string | null {
+    const defaultName = project.name ?? `${project.anchorName} competitors`;
+    const name = window.prompt('Bookmark name:', defaultName);
+    if (name === null) return null;
+    return name.trim() || defaultName;
+  }
+
+  async function handleSaveClick() {
+    const name = promptBookmarkName();
+    if (!name) return;
+    try {
+      await onSaveBookmark(name);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Could not save bookmark';
+      setToast(message);
+    }
   }
 
   const filtered = brands
@@ -97,12 +134,21 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
 
     setRefreshing(false);
     setRefreshProgress({ current: 0, total: 0, brand: '' });
+    const finalProject = {
+      ...project,
+      brands: updated,
+      updatedAt: new Date().toISOString(),
+    };
+    touchUpdated(updated);
+    if (project.id) {
+      await onPersist(finalProject);
+    }
     setToast(
       errorCount > 0
         ? `Refreshed with ${errorCount} error(s). Cached data kept for those brands.`
         : 'All brands refreshed successfully.',
     );
-  }, [brands, project.anchorName]);
+  }, [brands, project, onPersist]);
 
   const refreshOne = useCallback(
     async (brandId: string) => {
@@ -118,7 +164,10 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
           true,
         );
         const updated = brands.map((b) => (b.id === brandId ? { ...b, ...parsed } : b));
-        touchUpdated(updated);
+        const finalProject = touchUpdated(updated);
+        if (project.id) {
+          await onPersist(finalProject);
+        }
         setToast(`${brand.name} refreshed.`);
       } catch (e) {
         const message = e instanceof Error ? e.message : 'Unknown error';
@@ -127,38 +176,46 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
       setRefreshing(false);
       setRefreshProgress({ current: 0, total: 0, brand: '' });
     },
-    [brands, project.anchorName],
+    [brands, project, onPersist],
   );
 
   const refreshOpportunities = useCallback(async () => {
     setRefreshingOpps(true);
     try {
       const opps = await researchOpportunities(project.anchorName, brands);
-      touchUpdated(undefined, opps);
+      const finalProject = touchUpdated(undefined, opps);
+      if (project.id) {
+        await onPersist(finalProject);
+      }
       setToast('Opportunities regenerated.');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error';
       setToast(`Could not regenerate opportunities: ${message}`);
     }
     setRefreshingOpps(false);
-  }, [brands, project.anchorName]);
+  }, [brands, project, onPersist]);
 
   const refreshCrossThemes = useCallback(async () => {
     setRefreshingThemes(true);
     try {
       const themes = await researchCrossThemes(project.anchorName, brands);
+      const updatedAt = new Date().toISOString();
+      const finalProject = { ...project, crossThemes: themes, updatedAt };
       updateProject((prev) => ({
         ...prev,
         crossThemes: themes,
-        updatedAt: new Date().toISOString(),
+        updatedAt,
       }));
+      if (project.id) {
+        await onPersist(finalProject);
+      }
       setToast('Cross-brand themes regenerated.');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error';
       setToast(`Could not regenerate themes: ${message}`);
     }
     setRefreshingThemes(false);
-  }, [brands, project.anchorName]);
+  }, [brands, project, onPersist]);
 
   function selectBrand(id: string) {
     setSelected((prev) => (prev === id ? null : id));
@@ -195,7 +252,10 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
       </h1>
 
       {showSettings && (
-        <SettingsPanel onClose={() => setShowSettings(false)} onNewProject={onNewProject} />
+        <SettingsPanel
+          onClose={() => setShowSettings(false)}
+          onBackToLibrary={onBackToLibrary}
+        />
       )}
 
       <div className="topbar">
@@ -224,6 +284,15 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
           )}
         </div>
         <div className="topbar-actions">
+          <button
+            type="button"
+            className="ghost small"
+            onClick={() => void handleSaveClick()}
+            disabled={saving}
+          >
+            <i className={`ti ti-bookmark ${saving ? 'spin' : ''}`} aria-hidden="true" />
+            {isSaved ? 'Update bookmark' : 'Save bookmark'}
+          </button>
           <button
             type="button"
             className="ghost small"
@@ -377,7 +446,11 @@ export function Dashboard({ project, updateProject, onNewProject }: DashboardPro
           Research compiled for {project.anchorName} · powered by Claude via a server-side
           proxy
         </span>
-        <span>Session data kept in memory only</span>
+        <span>
+          {isSaved
+            ? `Bookmark saved${project.name ? `: ${project.name}` : ''}`
+            : 'Unsaved session — save to share with the team'}
+        </span>
       </div>
 
       {toast && <Toast text={toast} onDismiss={() => setToast(null)} />}
