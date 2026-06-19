@@ -71,7 +71,7 @@ docker build -t competitor-intel .
 docker run -p 8080:8080 --env-file .env competitor-intel
 ```
 
-See `docs/PRD.md` for full migration context and acceptance criteria.
+See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the full GCP operator checklist. See [`docs/PRD.md`](docs/PRD.md) for migration context and acceptance criteria.
 
 ## Legacy
 
