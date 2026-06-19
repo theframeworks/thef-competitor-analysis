@@ -263,6 +263,7 @@ describe('project routes', () => {
   });
 
   const githubEnv = {
+    BOOKMARK_STORAGE: 'github',
     GITHUB_TOKEN: 'test-github-token',
     GITHUB_REPO: 'owner/repo',
     GITHUB_DATA_PATH: 'data/projects',

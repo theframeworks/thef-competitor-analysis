@@ -1,13 +1,17 @@
 import * as github from '../github/storage.js';
 import * as local from '../local/storage.js';
+import * as postgres from '../postgres/storage.js';
 import { getStorageMode } from './mode.js';
 
 export { GitHubApiError } from '../github/storage.js';
 export { GitHubConfigError } from '../github/config.js';
-export { getStorageMode } from './mode.js';
+export { getStorageMode, describeStorageMode } from './mode.js';
 
 function backend() {
-  return getStorageMode() === 'local' ? local : github;
+  const mode = getStorageMode();
+  if (mode === 'local') return local;
+  if (mode === 'postgres') return postgres;
+  return github;
 }
 
 export const listProjects = (...args: Parameters<typeof github.listProjects>) =>

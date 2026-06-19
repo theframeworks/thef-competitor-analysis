@@ -1,186 +1,136 @@
-# GCP Cloud Run deployment
+# DigitalOcean App Platform deployment
 
-Repo-side CI/CD is defined in [`cloudbuild.yaml`](../cloudbuild.yaml). One-time GCP console setup is **human-in-the-loop (HITL)** — an operator with project access must complete the steps below.
+Production runs on **DigitalOcean App Platform** with **managed PostgreSQL** for bookmark storage.
 
 ## Architecture
 
 ```text
-git push (main) → Cloud Build trigger → Docker build → Artifact Registry → Cloud Run
+git push (main) → DO App Platform → Node.js build → Web service (port 8080)
+                                              ↘ Managed Postgres (bookmarks)
 ```
 
-Bookmark saves commit only `data/projects/*.json` and should **not** redeploy the app. Two safeguards:
+One Express process serves the API and the built client. Bookmarks are stored in Postgres — no Git commits on save.
 
-1. Cloud Build trigger `ignoredFiles: ['data/**']` — data-only pushes skip the build.
-2. Bookmark commit messages include `[skip ci]` as a secondary safeguard.
+## Cheapest setup
+
+| Component | Recommendation | Approx. cost |
+|-----------|----------------|--------------|
+| Web service | `apps-s-1vcpu-0.5gb` (512 MiB) | $5/mo |
+| Database | Managed Postgres, smallest tier (link separately) | from ~$15/mo |
+
+Use the app spec at [`.do/app.yaml`](../.do/app.yaml) as a starting point. Instance size is already set to the smallest slug.
 
 ## Prerequisites
 
-- GCP/Firebase project on the **Blaze** (pay-as-you-go) billing plan
-- `gcloud` CLI authenticated with Owner or equivalent permissions
-- GitHub repo connected to Cloud Build (2nd gen recommended) or manual `gcloud builds submit`
+- DigitalOcean account
+- GitHub repo connected to App Platform (or deploy via `doctl`)
+- Anthropic API key
+- Managed Postgres cluster (create in DO, then link to the app)
 
-## One-time GCP setup (HITL checklist)
+## One-time setup
 
-### 1. Enable APIs
+### 1. Create the Postgres database
 
-```bash
-gcloud services enable \
-  run.googleapis.com \
-  cloudbuild.googleapis.com \
-  artifactregistry.googleapis.com \
-  secretmanager.googleapis.com \
-  --project=PROJECT_ID
-```
+In the DigitalOcean control panel:
 
-### 2. Artifact Registry repository
+1. **Databases → Create Database Cluster** — PostgreSQL, pick the smallest size that fits your needs.
+2. Or, for minimal internal use only, add a dev database in the app spec (see comments in `.do/app.yaml`).
 
-```bash
-gcloud artifacts repositories create competitor-intel \
-  --repository-format=docker \
-  --location=us-central1 \
-  --project=PROJECT_ID
-```
+Note the connection string; App Platform can inject it automatically when the database is linked to the app.
 
-Adjust `competitor-intel` and `us-central1` if you override `_REPOSITORY` / `_REGION` in the trigger.
+### 2. Create the App Platform app
 
-### 3. Secret Manager secrets
+**Option A — Control panel**
 
-Create secrets (values **not** in this repo):
+1. **Apps → Create App → GitHub** — select this repository, branch `main`.
+2. App Platform detects **Node.js** from the repo (see `.nvmrc` / `engines` in `package.json`).
+3. Build command: `npm ci && npm run build`. Run command: `npm start`.
+4. Set HTTP port to **8080**.
+5. Instance size: **512 MiB / 0.5 GB RAM** (`apps-s-1vcpu-0.5gb`).
+6. **Resources → Add Resource → Database** — link your Postgres cluster (or create a dev DB).
+7. **Settings → App-Level Environment Variables:**
 
-```bash
-echo -n 'sk-ant-...' | gcloud secrets create ANTHROPIC_API_KEY \
-  --data-file=- --project=PROJECT_ID
+| Variable | Type | Value |
+|----------|------|--------|
+| `ANTHROPIC_API_KEY` | Secret | Your Anthropic API key |
+| `DATABASE_URL` | Secret | Injected when DB is linked (`${db.DATABASE_URL}`) |
+| `NODE_ENV` | Plain | `production` |
 
-echo -n 'ghp_...' | gcloud secrets create GITHUB_TOKEN \
-  --data-file=- --project=PROJECT_ID
-```
-
-Grant the Cloud Run service account access:
+**Option B — App spec + doctl**
 
 ```bash
-PROJECT_NUMBER=$(gcloud projects describe PROJECT_ID --format='value(projectNumber)')
-RUN_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-
-for SECRET in ANTHROPIC_API_KEY GITHUB_TOKEN; do
-  gcloud secrets add-iam-policy-binding "$SECRET" \
-    --member="serviceAccount:${RUN_SA}" \
-    --role="roles/secretmanager.secretAccessor" \
-    --project=PROJECT_ID
-done
+doctl apps create --spec .do/app.yaml
 ```
 
-### 4. Cloud Build permissions
+After linking a database in the control panel, update `DATABASE_URL` in the spec to `${your-db-name.DATABASE_URL}`.
 
-Cloud Build’s service account needs permission to deploy to Cloud Run and push images:
+### 3. Deploy
+
+Push to `main` (if auto-deploy is enabled) or trigger a manual deploy. On each deploy:
+
+1. App Platform runs `npm ci && npm run build` (Node 24, Prisma generate included).
+2. The service starts with `npm start`, which runs `prisma migrate deploy` then the server.
+
+## Environment variables
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `ANTHROPIC_API_KEY` | Yes | Server-side Anthropic API key |
+| `DATABASE_URL` | Yes (prod) | Postgres connection string from linked database |
+| `NODE_ENV` | Yes (prod) | Set to `production` |
+| `PORT` | No | Default `8080` (DO sets this automatically) |
+| `BOOKMARK_STORAGE` | No | Force `postgres`, `local`, or `github` |
+
+GitHub variables (`GITHUB_TOKEN`, `GITHUB_REPO`) are only needed if you use legacy GitHub bookmark storage in development.
+
+## Migrate existing bookmarks
+
+If you have JSON files under `data/projects/` or in GitHub from the old storage:
 
 ```bash
-PROJECT_NUMBER=$(gcloud projects describe PROJECT_ID --format='value(projectNumber)')
-CB_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
-
-for ROLE in roles/run.admin roles/iam.serviceAccountUser roles/artifactregistry.writer; do
-  gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member="serviceAccount:${CB_SA}" \
-    --role="$ROLE"
-done
+DATABASE_URL="postgresql://..." npm run db:import-json --workspace=server
 ```
 
-### 5. Cloud Build trigger
+Pass a directory path to import from a custom location. Existing IDs are skipped.
 
-Create a trigger on push to `main` with **ignored files** so bookmark saves do not rebuild:
-
-**Console:** Cloud Build → Triggers → Create trigger
-
-| Setting | Value |
-|---------|--------|
-| Event | Push to branch |
-| Branch | `^main$` |
-| Configuration | Cloud Build configuration file |
-| Location | Repository root |
-| Cloud Build config | `cloudbuild.yaml` |
-| **Ignored files** | `data/**` |
-
-**Substitution variables** (match your project):
-
-| Variable | Example |
-|----------|---------|
-| `_REGION` | `us-central1` |
-| `_SERVICE_NAME` | `competitor-intel` |
-| `_REPOSITORY` | `competitor-intel` |
-| `_GITHUB_REPO` | `theframeworks/thef-competitor-analysis` |
-
-`PROJECT_ID` is set automatically by Cloud Build.
-
-**gcloud (2nd gen GitHub connection):**
+## Local production-like testing
 
 ```bash
-gcloud builds triggers create github \
-  --name="deploy-competitor-intel" \
-  --repo-name="REPO_NAME" \
-  --repo-owner="ORG_OR_USER" \
-  --branch-pattern="^main$" \
-  --build-config="cloudbuild.yaml" \
-  --ignored-files="data/**" \
-  --substitutions="_REGION=us-central1,_SERVICE_NAME=competitor-intel,_REPOSITORY=competitor-intel,_GITHUB_REPO=owner/repo" \
-  --project=PROJECT_ID
+npm ci && npm run build
+NODE_ENV=production \
+  ANTHROPIC_API_KEY=sk-ant-... \
+  DATABASE_URL=postgresql://... \
+  npm start
 ```
 
-### 6. Budget alert (recommended)
-
-Cloud Console → Billing → Budgets & alerts → create a monthly budget (e.g. $10) with email notifications.
-
-## Cloud Run service configuration
-
-`cloudbuild.yaml` deploys with:
-
-| Setting | Value |
-|---------|--------|
-| Port | `8080` |
-| Min instances | `0` (scale to zero) |
-| Max instances | `1` (optional; reduces concurrent GitHub writes) |
-| Memory | `512Mi` |
-| CPU | `1` |
-| Auth | `--allow-unauthenticated` (internal URL only for v1) |
-
-**Environment variables (non-secret):**
-
-| Variable | Value |
-|----------|--------|
-| `GITHUB_REPO` | `owner/repo` (via `_GITHUB_REPO` substitution) |
-| `GITHUB_DATA_PATH` | `data/projects` |
-| `NODE_ENV` | `production` |
-
-**Secrets (Secret Manager → env):**
-
-| Env var | Secret |
-|---------|--------|
-| `ANTHROPIC_API_KEY` | `ANTHROPIC_API_KEY:latest` |
-| `GITHUB_TOKEN` | `GITHUB_TOKEN:latest` |
-
-Secrets are mounted at runtime; they are **not** copied into the Docker image (see `.dockerignore`).
-
-## Manual deploy (without trigger)
+Or with Docker (optional):
 
 ```bash
-gcloud builds submit \
-  --config=cloudbuild.yaml \
-  --substitutions=_REGION=us-central1,_SERVICE_NAME=competitor-intel,_REPOSITORY=competitor-intel,_GITHUB_REPO=owner/repo \
-  --project=PROJECT_ID
+docker build -t competitor-intel .
+docker run -p 8080:8080 \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  -e DATABASE_URL=postgresql://... \
+  -e NODE_ENV=production \
+  competitor-intel
 ```
 
-## Post-deploy verification (HITL)
+## Post-deploy verification
 
-- [ ] Open the Cloud Run HTTPS URL; app loads
-- [ ] Run a short research session via the UI
-- [ ] Save a bookmark → JSON appears on GitHub under `data/projects/`
-- [ ] Cloud Build **does not** run on bookmark-only commits (check Build history)
-- [ ] Push a trivial code change → Cloud Build runs → new revision serves traffic
-- [ ] Confirm secrets are in Secret Manager only (not in image layers or repo)
+- [ ] App URL loads the UI
+- [ ] Research session works (`/api/messages`)
+- [ ] Save a bookmark → appears in list after refresh
+- [ ] Bookmark persists after redeploy (data in Postgres, not the container)
+- [ ] `ANTHROPIC_API_KEY` and `DATABASE_URL` are set as encrypted env vars only
 
 ## Troubleshooting
 
 | Symptom | Check |
 |---------|--------|
-| Build fails on push | Cloud Build history → logs; IAM for Cloud Build SA |
-| 500 on `/api/messages` | Secret `ANTHROPIC_API_KEY` exists and Run SA has accessor |
-| Bookmark save fails | `GITHUB_TOKEN` secret; PAT has `contents: read/write` |
-| Deploy runs on data save | Trigger `ignoredFiles` includes `data/**`; commit has `[skip ci]` |
+| Build fails on Prisma | `server/prisma/schema.prisma` and migrations are in the repo |
+| 503 on bookmark routes | `DATABASE_URL` is set and the database is reachable from the app |
+| Migration errors on start | Postgres user can create tables; run `npm run db:migrate --workspace=server` locally against the same URL |
+| 500 on `/api/messages` | `ANTHROPIC_API_KEY` secret is set |
+
+## Legacy GCP deployment
+
+The previous Cloud Run setup (`cloudbuild.yaml`, GCP Secret Manager) is no longer the primary path. Those files remain for reference but are not required for DigitalOcean deployment.
