@@ -1,6 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Project } from '../types/domain';
 import { createProject, getProject, updateProject as saveProject } from '../lib/projects';
+import { navigateTo, parsePath, pathForRoute } from '../lib/routes';
+import {
+  clearSessionProject,
+  loadSessionProject,
+  saveSessionProject,
+} from '../lib/session-project';
+import { useAppRouter } from '../hooks/useAppRouter';
 import { BookmarkLibrary } from './BookmarkLibrary';
 import { Dashboard } from './Dashboard';
 import { SaveBookmarkPrompt } from './SaveBookmarkPrompt';
@@ -18,12 +25,64 @@ export function Root() {
 
   const isSaved = Boolean(project?.id);
 
+  const applyRoute = useCallback(async (route: ReturnType<typeof parsePath>) => {
+    switch (route.name) {
+      case 'library':
+        setView('library');
+        setProject(null);
+        setShowSavePrompt(false);
+        return;
+      case 'setup':
+        setView('setup');
+        setProject(null);
+        setShowSavePrompt(false);
+        return;
+      case 'session': {
+        const sessionProject = loadSessionProject();
+        if (!sessionProject) {
+          navigateTo('/');
+          setView('library');
+          setProject(null);
+          setShowSavePrompt(false);
+          return;
+        }
+        setProject(sessionProject);
+        setView('dashboard');
+        setShowSavePrompt(!sessionProject.id);
+        return;
+      }
+      case 'research':
+        try {
+          const loaded = await getProject(route.id);
+          setProject(loaded);
+          setView('dashboard');
+          setShowSavePrompt(false);
+        } catch (e) {
+          const message = e instanceof Error ? e.message : 'Could not load bookmark';
+          setToast(message);
+          navigateTo('/');
+          setView('library');
+          setProject(null);
+          setShowSavePrompt(false);
+        }
+        return;
+    }
+  }, []);
+
+  const { ready, goTo } = useAppRouter(applyRoute);
+
   function updateProject(updater: Project | ((prev: Project) => Project)) {
     setProject((prev) => {
       if (!prev) return prev;
       return typeof updater === 'function' ? updater(prev) : updater;
     });
   }
+
+  useEffect(() => {
+    if (view === 'dashboard' && project && !project.id) {
+      saveSessionProject(project);
+    }
+  }, [view, project]);
 
   const persistProject = useCallback(async (p: Project): Promise<boolean> => {
     if (!p.id) return true;
@@ -43,16 +102,12 @@ export function Root() {
   }, []);
 
   async function handleLoadBookmark(id: string) {
-    const loaded = await getProject(id);
-    setProject(loaded);
-    setShowSavePrompt(false);
-    setView('dashboard');
+    goTo({ name: 'research', id });
   }
 
   function handleBuildComplete(p: Project) {
-    setProject(p);
-    setShowSavePrompt(true);
-    setView('dashboard');
+    saveSessionProject(p);
+    goTo({ name: 'session' });
   }
 
   async function handleSaveBookmark(name: string) {
@@ -66,8 +121,11 @@ export function Root() {
         opportunities: project.opportunities,
         crossThemes: project.crossThemes,
       });
+      if (!saved.id) throw new Error('Save failed');
+      clearSessionProject();
       setProject(saved);
       setShowSavePrompt(false);
+      navigateTo(pathForRoute({ name: 'research', id: saved.id }));
       setToast(`Saved "${saved.name}".`);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Could not save bookmark';
@@ -99,16 +157,23 @@ export function Root() {
   }
 
   function handleBackToLibrary() {
-    setProject(null);
-    setShowSavePrompt(false);
-    setView('library');
+    clearSessionProject();
+    goTo({ name: 'library' });
+  }
+
+  if (!ready) {
+    return (
+      <div className="library-state">
+        <i className="ti ti-loader-2 spin" aria-hidden="true" />Loading…
+      </div>
+    );
   }
 
   if (view === 'library') {
     return (
       <>
         <BookmarkLibrary
-          onNewResearch={() => setView('setup')}
+          onNewResearch={() => goTo({ name: 'setup' })}
           onLoad={handleLoadBookmark}
         />
         {toast && <Toast text={toast} onDismiss={() => setToast(null)} />}
@@ -119,10 +184,7 @@ export function Root() {
   if (view === 'setup') {
     return (
       <>
-        <SetupScreen
-          onStart={handleBuildComplete}
-          onBack={handleBackToLibrary}
-        />
+        <SetupScreen onStart={handleBuildComplete} onBack={handleBackToLibrary} />
         {toast && <Toast text={toast} onDismiss={() => setToast(null)} />}
       </>
     );

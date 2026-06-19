@@ -79,23 +79,24 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
             Open a bookmarked dashboard or start new competitor research.
           </div>
         </div>
-        <button type="button" className="primary big" onClick={onNewResearch}>
-          <i className="ti ti-plus" aria-hidden="true" /> New research
-        </button>
+        <div className="library-header-actions">
+          <button type="button" className="pill pill-accent small" onClick={onNewResearch}><i className="ti ti-plus" aria-hidden="true" />New research</button>
+        </div>
       </div>
 
       {loading && (
         <div className="library-state">
-          <i className="ti ti-loader-2 spin" aria-hidden="true" /> Loading bookmarks…
+          <i className="ti ti-loader-2 spin" aria-hidden="true" />Loading bookmarks…
         </div>
       )}
 
       {!loading && error && (
         <div className="library-state library-error">
           <div>{error}</div>
-          <button type="button" className="small" onClick={() => void loadBookmarks()}>
-            <i className="ti ti-refresh" aria-hidden="true" /> Retry
-          </button>
+          <button
+            type="button"
+            className="pill pill-accent small"
+            onClick={() => void loadBookmarks()}><i className="ti ti-refresh" aria-hidden="true" />Retry</button>
         </div>
       )}
 
@@ -117,29 +118,23 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
                 type="button"
                 className="bookmark-main"
                 onClick={() => void handleOpen(bookmark.id)}
-                disabled={loadingId === bookmark.id || deletingId === bookmark.id}
-              >
-                <div className="bookmark-name">{bookmark.name}</div>
-                <div className="bookmark-meta">
-                  {loadingId === bookmark.id ? (
-                    <>
-                      <i className="ti ti-loader-2 spin" aria-hidden="true" /> Opening…
-                    </>
+                disabled={loadingId === bookmark.id || deletingId === bookmark.id}><div className="bookmark-name">{bookmark.name}</div>
+                <div className="bookmark-meta">{loadingId === bookmark.id ? (
+                    <><i className="ti ti-loader-2 spin" aria-hidden="true" />Opening…</>
                   ) : (
                     <>
                       <span>{bookmark.anchorName}</span>
                       <span className="bookmark-dot">·</span>
                       <span>Updated {fmtTime(bookmark.updatedAt)}</span>
                     </>
-                  )}
-                </div>
-              </button>
+                  )}</div></button>
               <button
                 type="button"
-                className="ghost small btn-danger bookmark-delete"
+                className="pill pill-danger pill-icon bookmark-delete"
                 onClick={() => void handleDelete(bookmark.id, bookmark.name)}
                 disabled={loadingId === bookmark.id || deletingId === bookmark.id}
                 aria-label={`Delete ${bookmark.name}`}
+                title="Delete bookmark"
               >
                 {deletingId === bookmark.id ? (
                   <i className="ti ti-loader-2 spin" aria-hidden="true" />

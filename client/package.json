@@ -9,6 +9,9 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/source-serif-4": "^5.2.9",
+    "@tabler/icons-webfont": "^3.44.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

@@ -37,23 +37,14 @@ export function SaveBookmarkPrompt({
         <div className="save-prompt-actions">
           <button
             type="button"
-            className="primary"
+            className="pill pill-accent small"
             onClick={() => onSave(name.trim() || defaultName)}
-            disabled={saving}
-          >
-            {saving ? (
-              <>
-                <i className="ti ti-loader-2 spin" aria-hidden="true" /> Saving…
-              </>
-            ) : (
-              <>
-                <i className="ti ti-bookmark" aria-hidden="true" /> Save bookmark
-              </>
-            )}
-          </button>
-          <button type="button" className="ghost" onClick={onSkip} disabled={saving}>
-            Skip for now
-          </button>
+            disabled={saving}>{saving ? (
+            <><i className="ti ti-loader-2 spin" aria-hidden="true" />Saving…</>
+          ) : (
+            <><i className="ti ti-bookmark" aria-hidden="true" />Save bookmark</>
+          )}</button>
+          <button type="button" className="pill pill-neutral small" onClick={onSkip} disabled={saving}>Skip for now</button>
         </div>
       </div>
     </div>

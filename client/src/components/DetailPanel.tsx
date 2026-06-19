@@ -35,15 +35,11 @@ export function DetailPanel({
           <div className="detail-tagline">{brand.tagline}</div>
         </div>
         <div className="detail-actions">
-          <button
-            type="button"
-            className="small"
-            onClick={onRefresh}
-            disabled={refreshing}
-          >
-            <i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />{' '}
-            Refresh
-          </button>
+        <button
+          type="button"
+          className="pill pill-accent small"
+          onClick={onRefresh}
+          disabled={refreshing}><i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />Refresh</button>
         </div>
       </div>
 
