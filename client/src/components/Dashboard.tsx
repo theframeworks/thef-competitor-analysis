@@ -298,40 +298,25 @@ export function Dashboard({
         <div className="topbar-actions">
           <button
             type="button"
-            className="ghost small"
+            className="pill pill-accent small"
             onClick={() => void handleSaveClick()}
-            disabled={saving}
-          >
-            <i className={`ti ti-bookmark ${saving ? 'spin' : ''}`} aria-hidden="true" />
-            {isSaved ? 'Update bookmark' : 'Save bookmark'}
-          </button>
+            disabled={saving}><i className={`ti ti-bookmark ${saving ? 'spin' : ''}`} aria-hidden="true" />{isSaved ? 'Update bookmark' : 'Save bookmark'}</button>
           <button
             type="button"
-            className="ghost small"
-            onClick={() => setShowSettings(true)}
-          >
-            <i className="ti ti-settings" aria-hidden="true" /> Settings
-          </button>
+            className="pill pill-neutral small"
+            onClick={() => setShowSettings(true)}><i className="ti ti-settings" aria-hidden="true" />Settings</button>
           <button
             type="button"
-            className="small"
-            onClick={() => setView((v) => (v === 'grid' ? 'list' : 'grid'))}
-          >
-            <i
+            className="pill pill-neutral small"
+            onClick={() => setView((v) => (v === 'grid' ? 'list' : 'grid'))}><i
               className={`ti ${view === 'grid' ? 'ti-list' : 'ti-layout-grid'}`}
               aria-hidden="true"
-            />
-            {view === 'grid' ? 'List' : 'Grid'}
-          </button>
+            />{view === 'grid' ? 'List' : 'Grid'}</button>
           <button
             type="button"
-            className="primary small"
+            className="pill pill-accent small"
             onClick={refreshAll}
-            disabled={refreshing}
-          >
-            <i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />
-            {refreshing ? 'Researching…' : 'Refresh all'}
-          </button>
+            disabled={refreshing}><i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />{refreshing ? 'Researching…' : 'Refresh all'}</button>
         </div>
       </div>
 
@@ -423,16 +408,12 @@ export function Dashboard({
           </div>
           <button
             type="button"
-            className="small"
+            className="pill pill-accent small"
             onClick={refreshOpportunities}
-            disabled={refreshingOpps || refreshing}
-          >
-            <i
+            disabled={refreshingOpps || refreshing}><i
               className={`ti ti-refresh ${refreshingOpps ? 'spin' : ''}`}
               aria-hidden="true"
-            />
-            {refreshingOpps ? 'Synthesizing…' : 'Regenerate'}
-          </button>
+            />{refreshingOpps ? 'Synthesizing…' : 'Regenerate'}</button>
         </div>
         {project.opportunities && project.opportunities.length > 0 ? (
           <div className="opp-grid">

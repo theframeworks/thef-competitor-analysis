@@ -243,9 +243,7 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
           {error && <div className="setup-error">{error}</div>}
 
           <div className="setup-actions">
-            <button type="button" className="primary big" onClick={handleBuild}>
-              <i className="ti ti-sparkles" aria-hidden="true" /> Build dashboard
-            </button>
+          <button type="button" className="pill pill-accent small" onClick={handleBuild}><i className="ti ti-sparkles" aria-hidden="true" />Build dashboard</button>
             <span className="setup-count">
               {brandCount} brand{brandCount === 1 ? '' : 's'} to research
             </span>

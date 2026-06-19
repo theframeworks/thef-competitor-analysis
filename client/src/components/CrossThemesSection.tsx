@@ -61,13 +61,9 @@ export function CrossThemesSection({
         <div className="eyebrow eyebrow-flush">Cross-brand themes</div>
         <button
           type="button"
-          className="small"
+          className="pill pill-accent small"
           onClick={onRefresh}
-          disabled={refreshing}
-        >
-          <i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />
-          {refreshing ? 'Analyzing…' : 'Regenerate'}
-        </button>
+          disabled={refreshing}><i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />{refreshing ? 'Analyzing…' : 'Regenerate'}</button>
       </div>
       {hasData ? (
         <>
