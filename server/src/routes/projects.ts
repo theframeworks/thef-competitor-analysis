@@ -1,7 +1,6 @@
 import { Router } from 'express';
-import { GitHubConfigError } from '../github/config.js';
 import {
-  GitHubApiError,
+  StorageError,
   createProject,
   deleteProject,
   getProject,
@@ -13,13 +12,8 @@ import { generateProjectId } from '../utils/slugify.js';
 
 export const projectsRouter = Router();
 
-function handleGitHubError(err: unknown, res: import('express').Response): boolean {
-  if (err instanceof GitHubConfigError) {
-    res.status(503).json({ error: err.message });
-    return true;
-  }
-
-  if (err instanceof GitHubApiError) {
+function handleStorageError(err: unknown, res: import('express').Response): boolean {
+  if (err instanceof StorageError) {
     const status = err.status === 404 ? 404 : err.status >= 500 ? 502 : err.status;
     res.status(status).json({ error: err.message });
     return true;
@@ -64,7 +58,7 @@ projectsRouter.get('/', async (_req, res) => {
     const projects = await listProjects();
     res.json(projects);
   } catch (err) {
-    if (!handleGitHubError(err, res)) {
+    if (!handleStorageError(err, res)) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       res.status(500).json({ error: message });
     }
@@ -76,7 +70,7 @@ projectsRouter.get('/:id', async (req, res) => {
     const project = await getProject(req.params.id);
     res.json(project);
   } catch (err) {
-    if (!handleGitHubError(err, res)) {
+    if (!handleStorageError(err, res)) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       res.status(500).json({ error: message });
     }
@@ -97,7 +91,7 @@ projectsRouter.post('/', async (req, res) => {
     const project = await createProject(id, req.body);
     res.status(201).json(project);
   } catch (err) {
-    if (!handleGitHubError(err, res)) {
+    if (!handleStorageError(err, res)) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       res.status(500).json({ error: message });
     }
@@ -109,7 +103,7 @@ projectsRouter.delete('/:id', async (req, res) => {
     await deleteProject(req.params.id);
     res.status(204).send();
   } catch (err) {
-    if (!handleGitHubError(err, res)) {
+    if (!handleStorageError(err, res)) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       res.status(500).json({ error: message });
     }
@@ -141,7 +135,7 @@ projectsRouter.put('/:id', async (req, res) => {
     const updated = await updateProject(project);
     res.json(updated);
   } catch (err) {
-    if (!handleGitHubError(err, res)) {
+    if (!handleStorageError(err, res)) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       res.status(500).json({ error: message });
     }

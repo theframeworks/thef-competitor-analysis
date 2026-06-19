@@ -2,17 +2,14 @@ import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import type { Server } from 'node:http';
 import { createApp } from '../src/app.js';
+import { createProject } from '../src/db/projects.js';
 import type { Project } from '../src/types/project.js';
+import { createTestDatabase } from './helpers/test-database.js';
 
 interface MockResponse {
   status: number;
   body?: unknown;
   statusText?: string;
-}
-
-interface FetchCall {
-  url: string;
-  init?: RequestInit;
 }
 
 function jsonResponse(status: number, body: unknown, statusText = 'OK'): Response {
@@ -28,14 +25,10 @@ function jsonResponse(status: number, body: unknown, statusText = 'OK'): Respons
 function createMockFetch(
   handlers: Array<{
     match: (url: string, init?: RequestInit) => boolean;
-    response:
-      | MockResponse
-      | ((url: string, init?: RequestInit) => MockResponse | Promise<MockResponse>);
+    response: MockResponse;
   }>,
   originalFetch: typeof fetch = globalThis.fetch,
 ) {
-  const calls: FetchCall[] = [];
-
   const mockFetch = async (url: string | URL | Request, init?: RequestInit) => {
     const urlStr = url.toString();
 
@@ -43,22 +36,16 @@ function createMockFetch(
       return originalFetch(url, init);
     }
 
-    calls.push({ url: urlStr, init });
-
     for (const handler of handlers) {
       if (handler.match(urlStr, init)) {
-        const result =
-          typeof handler.response === 'function'
-            ? await handler.response(urlStr, init)
-            : handler.response;
-        return jsonResponse(result.status, result.body, result.statusText);
+        return jsonResponse(handler.response.status, handler.response.body, handler.response.statusText);
       }
     }
 
     throw new Error(`Unmocked fetch: ${urlStr} ${init?.method ?? 'GET'}`);
   };
 
-  return { mockFetch, calls };
+  return mockFetch;
 }
 
 const sampleCreateBody = {
@@ -112,7 +99,7 @@ describe('POST /api/messages', () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
-    const { mockFetch } = createMockFetch(
+    const mockFetch = createMockFetch(
       [
         {
           match: (url) => url === 'https://api.anthropic.com/v1/messages',
@@ -168,106 +155,26 @@ describe('POST /api/messages', () => {
 });
 
 describe('project routes', () => {
-  let fetchMock: ReturnType<typeof mock.method>;
-  let calls: FetchCall[];
-  const originalFetch = globalThis.fetch;
+  let databaseUrl: string;
+  let cleanup: () => Promise<void>;
+  const previousDatabaseUrl = process.env.DATABASE_URL;
 
-  beforeEach(() => {
-    const fetchSetup = createMockFetch(
-      [
-      {
-        match: (url, init) =>
-          url.endsWith('/contents/data/projects') && (!init?.method || init.method === 'GET'),
-        response: {
-          status: 200,
-          body: [
-            {
-              name: `${storedProject.id}.json`,
-              path: `data/projects/${storedProject.id}.json`,
-              sha: 'list-sha',
-              size: 100,
-              type: 'file',
-            },
-          ],
-        },
-      },
-      {
-        match: (url, init) =>
-          url.endsWith(`/contents/data/projects/${storedProject.id}.json`) &&
-          (!init?.method || init.method === 'GET'),
-        response: {
-          status: 200,
-          body: {
-            name: `${storedProject.id}.json`,
-            path: `data/projects/${storedProject.id}.json`,
-            sha: 'file-sha-1',
-            content: Buffer.from(JSON.stringify(storedProject, null, 2)).toString('base64'),
-            encoding: 'base64',
-            type: 'file',
-          },
-        },
-      },
-      {
-        match: (url, init) =>
-          url.includes('/contents/data/projects/') &&
-          url.endsWith('.json') &&
-          init?.method === 'PUT' &&
-          !url.endsWith(`/contents/data/projects/${storedProject.id}.json`),
-        response: {
-          status: 201,
-          body: { content: { path: 'data/projects/new-bookmark.json' } },
-        },
-      },
-      {
-        match: (url, init) =>
-          url.endsWith(`/contents/data/projects/${storedProject.id}.json`) &&
-          init?.method === 'PUT',
-        response: (_url, init) => {
-          const body = JSON.parse(String(init?.body)) as { sha?: string; message?: string };
-          const putCallsForProject = calls.filter(
-            (call) =>
-              call.init?.method === 'PUT' &&
-              call.url.endsWith(`/contents/data/projects/${storedProject.id}.json`),
-          );
-
-          if (putCallsForProject.length === 1) {
-            return { status: 409, body: { message: 'Conflict' }, statusText: 'Conflict' };
-          }
-          return {
-            status: 200,
-            body: { content: { path: `data/projects/${storedProject.id}.json` } },
-          };
-        },
-      },
-      {
-        match: (url, init) =>
-          url.endsWith(`/contents/data/projects/${storedProject.id}.json`) &&
-          init?.method === 'DELETE',
-        response: { status: 200, body: {} },
-      },
-      {
-        match: (url, init) =>
-          url.endsWith('/contents/data/projects/existing.json') && init?.method === 'PUT',
-        response: { status: 422, body: { message: 'sha was not supplied' }, statusText: 'Unprocessable Entity' },
-      },
-    ],
-      originalFetch,
-    );
-
-    calls = fetchSetup.calls;
-    fetchMock = mock.method(globalThis, 'fetch', fetchSetup.mockFetch);
+  beforeEach(async () => {
+    ({ databaseUrl, cleanup } = await createTestDatabase());
+    process.env.DATABASE_URL = databaseUrl;
+    await createProject(storedProject.id, {
+      name: storedProject.name,
+      anchorName: storedProject.anchorName,
+      brands: storedProject.brands,
+      opportunities: storedProject.opportunities,
+      crossThemes: storedProject.crossThemes,
+    });
   });
 
-  afterEach(() => {
-    fetchMock.mock.restore();
+  afterEach(async () => {
+    process.env.DATABASE_URL = previousDatabaseUrl;
+    await cleanup();
   });
-
-  const githubEnv = {
-    BOOKMARK_STORAGE: 'github',
-    GITHUB_TOKEN: 'test-github-token',
-    GITHUB_REPO: 'owner/repo',
-    GITHUB_DATA_PATH: 'data/projects',
-  };
 
   it('lists project summaries', async () => {
     await withServer(async (baseUrl) => {
@@ -278,7 +185,7 @@ describe('project routes', () => {
       assert.equal(projects.length, 1);
       assert.equal(projects[0]?.id, storedProject.id);
       assert.equal(projects[0]?.name, storedProject.name);
-    }, githubEnv);
+    }, { DATABASE_URL: databaseUrl });
   });
 
   it('gets a single project by id', async () => {
@@ -289,10 +196,10 @@ describe('project routes', () => {
       const project = (await response.json()) as Project;
       assert.equal(project.id, storedProject.id);
       assert.equal(project.anchorName, 'Acme Corp');
-    }, githubEnv);
+    }, { DATABASE_URL: databaseUrl });
   });
 
-  it('creates a project with a [skip ci] commit message', async () => {
+  it('creates a project', async () => {
     await withServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/projects`, {
         method: 'POST',
@@ -304,17 +211,13 @@ describe('project routes', () => {
       const project = (await response.json()) as Project;
       assert.match(project.id, /^q1-competitive-set-[a-f0-9]{8}$/);
 
-      const putCall = calls.find(
-        (call) => call.init?.method === 'PUT' && call.url.includes('/contents/data/projects/'),
-      );
-      assert.ok(putCall);
-
-      const putBody = JSON.parse(String(putCall.init?.body)) as { message: string };
-      assert.equal(putBody.message, `Save bookmark: ${sampleCreateBody.name} [skip ci]`);
-    }, githubEnv);
+      const listResponse = await fetch(`${baseUrl}/api/projects`);
+      const projects = (await listResponse.json()) as Project[];
+      assert.equal(projects.length, 2);
+    }, { DATABASE_URL: databaseUrl });
   });
 
-  it('updates a project and retries after a 409 conflict', async () => {
+  it('updates a project', async () => {
     await withServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/projects/${storedProject.id}`, {
         method: 'PUT',
@@ -328,65 +231,6 @@ describe('project routes', () => {
       assert.equal(response.status, 200);
       const project = (await response.json()) as Project;
       assert.equal(project.name, 'Updated Bookmark');
-
-      const putCalls = calls.filter(
-        (call) =>
-          call.init?.method === 'PUT' &&
-          call.url.endsWith(`/contents/data/projects/${storedProject.id}.json`),
-      );
-      assert.equal(putCalls.length, 2);
-
-      const firstPut = JSON.parse(String(putCalls[0]?.init?.body)) as {
-        message: string;
-        sha: string;
-      };
-      const secondPut = JSON.parse(String(putCalls[1]?.init?.body)) as {
-        message: string;
-        sha: string;
-      };
-
-      assert.equal(firstPut.sha, 'file-sha-1');
-      assert.equal(secondPut.sha, 'file-sha-1');
-      assert.equal(firstPut.message, 'Refresh bookmark: Updated Bookmark [skip ci]');
-      assert.equal(secondPut.message, 'Refresh bookmark: Updated Bookmark [skip ci]');
-    }, githubEnv);
-  });
-
-  it('returns 409 when creating a project that already exists', async () => {
-    fetchMock.mock.restore();
-
-    const fetchSetup = createMockFetch(
-      [
-        {
-          match: (url, init) =>
-            url.includes('/contents/data/projects/') && init?.method === 'PUT',
-          response: {
-            status: 422,
-            body: { message: 'sha was not supplied' },
-            statusText: 'Unprocessable Entity',
-          },
-        },
-      ],
-      originalFetch,
-    );
-
-    fetchMock = mock.method(globalThis, 'fetch', fetchSetup.mockFetch);
-
-    await withServer(async (baseUrl) => {
-      const response = await fetch(`${baseUrl}/api/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sampleCreateBody),
-      });
-
-      assert.equal(response.status, 409);
-      const body = (await response.json()) as { error: string };
-      assert.match(body.error, /already exists/);
-
-      const putCall = fetchSetup.calls.find((call) => call.init?.method === 'PUT');
-      assert.ok(putCall);
-      const putBody = JSON.parse(String(putCall.init?.body)) as { message: string };
-      assert.equal(putBody.message, `Save bookmark: ${sampleCreateBody.name} [skip ci]`);
-    }, githubEnv);
+    }, { DATABASE_URL: databaseUrl });
   });
 });

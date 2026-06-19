@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
-import { prisma } from '../db/client.js';
-import { GitHubApiError } from '../github/storage.js';
+import { getPrisma } from '../db/client.js';
+import { StorageError } from '../storage/errors.js';
 import type {
   Brand,
   CreateProjectInput,
@@ -34,7 +34,9 @@ function toProject(row: ProjectRow): Project {
   };
 }
 
-function toSummary(row: Pick<ProjectRow, 'id' | 'name' | 'anchorName' | 'createdAt' | 'updatedAt'>): ProjectSummary {
+function toSummary(
+  row: Pick<ProjectRow, 'id' | 'name' | 'anchorName' | 'createdAt' | 'updatedAt'>,
+): ProjectSummary {
   return {
     id: row.id,
     name: row.name,
@@ -64,10 +66,10 @@ function createInputToData(
 function handlePrismaError(err: unknown, id?: string): never {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
-      throw new GitHubApiError(`Project "${id ?? 'unknown'}" already exists.`, 409);
+      throw new StorageError(`Project "${id ?? 'unknown'}" already exists.`, 409);
     }
     if (err.code === 'P2025') {
-      throw new GitHubApiError(`Project "${id ?? 'unknown'}" not found.`, 404);
+      throw new StorageError(`Project "${id ?? 'unknown'}" not found.`, 404);
     }
   }
 
@@ -75,7 +77,7 @@ function handlePrismaError(err: unknown, id?: string): never {
 }
 
 export async function listProjects(): Promise<ProjectSummary[]> {
-  const rows = await prisma.project.findMany({
+  const rows = await getPrisma().project.findMany({
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true,
@@ -91,7 +93,7 @@ export async function listProjects(): Promise<ProjectSummary[]> {
 
 export async function getProject(id: string): Promise<Project> {
   try {
-    const row = await prisma.project.findUniqueOrThrow({ where: { id } });
+    const row = await getPrisma().project.findUniqueOrThrow({ where: { id } });
     return toProject(row);
   } catch (err) {
     handlePrismaError(err, id);
@@ -103,7 +105,7 @@ export async function createProject(
   input: CreateProjectInput,
 ): Promise<Project> {
   try {
-    const row = await prisma.project.create({
+    const row = await getPrisma().project.create({
       data: createInputToData(id, input),
     });
     return toProject(row);
@@ -114,7 +116,7 @@ export async function createProject(
 
 export async function deleteProject(id: string): Promise<void> {
   try {
-    await prisma.project.delete({ where: { id } });
+    await getPrisma().project.delete({ where: { id } });
   } catch (err) {
     handlePrismaError(err, id);
   }
@@ -122,7 +124,7 @@ export async function deleteProject(id: string): Promise<void> {
 
 export async function updateProject(project: Project): Promise<Project> {
   try {
-    const row = await prisma.project.update({
+    const row = await getPrisma().project.update({
       where: { id: project.id },
       data: {
         name: project.name,

@@ -2,7 +2,7 @@
 
 **Type:** AFK  
 **Status:** completed  
-**Blocked by:** #6  
+**Blocked by:** #4  
 **User stories:** 19, 25
 
 ## What to build
@@ -33,7 +33,7 @@ Add automated tests for critical paths, remove legacy files, document operations
 
 ## Blocked by
 
-- #6 GCP Cloud Run deployment + CI
+- #4 Bookmark library UI
 
 ---
 

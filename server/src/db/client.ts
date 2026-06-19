@@ -1,9 +1,34 @@
 import { PrismaClient } from '@prisma/client';
+import { resolveDatabaseUrl } from './config.js';
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
+let prismaInstance: PrismaClient | undefined;
+let connectedUrl: string | undefined;
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+export function getPrisma(): PrismaClient {
+  const url = process.env.DATABASE_URL?.trim() || resolveDatabaseUrl();
+  process.env.DATABASE_URL = url;
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+  if (!prismaInstance || connectedUrl !== url) {
+    if (prismaInstance) {
+      void prismaInstance.$disconnect();
+    }
+    prismaInstance = new PrismaClient();
+    connectedUrl = url;
+  }
+
+  return prismaInstance;
+}
+
+export async function disconnectPrisma(): Promise<void> {
+  if (prismaInstance) {
+    await prismaInstance.$disconnect();
+    prismaInstance = undefined;
+    connectedUrl = undefined;
+  }
+}
+
+export function ensureDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL?.trim() || resolveDatabaseUrl();
+  process.env.DATABASE_URL = url;
+  return url;
 }

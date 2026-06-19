@@ -1,20 +1,20 @@
 /**
- * One-time import of bookmark JSON files into Postgres.
+ * One-time import of bookmark JSON files into the database.
  *
  * Usage:
- *   DATABASE_URL=postgresql://... tsx server/scripts/import-json.ts [directory]
+ *   DATABASE_URL=postgresql://... npm run db:import-json --workspace=server
+ *   DATABASE_URL=file:../../data/dev.db npm run db:import-json --workspace=server
  *
  * Defaults to data/projects/ at the repo root.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import dotenv from 'dotenv';
-import { prisma } from '../src/db/client.js';
+import '../src/env.js';
+import { disconnectPrisma, getPrisma } from '../src/db/client.js';
 import type { Project } from '../src/types/project.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 async function main(): Promise<void> {
   const sourceDir =
@@ -38,6 +38,7 @@ async function main(): Promise<void> {
     return;
   }
 
+  const prisma = getPrisma();
   let imported = 0;
   let skipped = 0;
 
@@ -75,5 +76,5 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectPrisma();
   });
