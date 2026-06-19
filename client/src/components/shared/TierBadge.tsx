@@ -13,7 +13,10 @@ export function tierColor(tier: string, tiers: string[]): string {
 export function TierBadge({ tier, tiers }: TierBadgeProps) {
   const c = tierColor(tier, tiers);
   return (
-    <span className="tier-badge" style={{ background: `${c}26`, color: c }}>
+    <span
+      className="inline-block rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide whitespace-nowrap"
+      style={{ background: `${c}26`, color: c }}
+    >
       {tier}
     </span>
   );

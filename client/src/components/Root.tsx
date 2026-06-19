@@ -174,8 +174,8 @@ export function Root() {
 
   if (!ready) {
     return (
-      <div className="library-state">
-        <i className="ti ti-loader-2 spin" aria-hidden="true" />
+      <div className="flex items-center gap-2.5 py-6 text-sm text-text-2">
+        <i className="ti ti-loader-2 animate-spin" aria-hidden="true" />
         Loading…
       </div>
     );

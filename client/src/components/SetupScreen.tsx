@@ -5,6 +5,7 @@ import {
   researchCrossThemes,
   researchOpportunities,
 } from "../lib/research";
+import { btnPillAccentSmall, cn, fieldBase, textareaBase } from "../lib/ui";
 import { brandId, parseCompetitorList, slugify } from "../lib/utils";
 import type { BuildLogRow, Project } from "../types/domain";
 import { BackLink } from "./shared/BackLink";
@@ -221,12 +222,16 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
     : 0;
 
   return (
-    <div className="setup-wrap">
+    <div className="flex min-h-screen w-full max-w-content flex-col pt-9 pb-16">
       {onBack && <BackLink label="Back to library" onClick={handleBack} />}
-      <div className="setup-main">
-        <div className="setup-eyebrow">Competitor intelligence monitor</div>
-        <div className="setup-title">Build a brand intelligence dashboard</div>
-        <div className="setup-sub">
+      <div className="flex flex-col justify-start">
+        <div className="mb-3.5 font-serif text-xs tracking-widest uppercase text-accent">
+          Competitor intelligence monitor
+        </div>
+        <div className="mb-3 font-serif text-4xl leading-tight font-semibold">
+          Build a brand intelligence dashboard
+        </div>
+        <div className="mb-9 max-w-lg text-sm leading-relaxed text-text-2">
           Enter your brand and the competitors you want to track. Claude will
           research each one&apos;s positioning, content themes, tone, and
           channel scale, then generate a live dashboard you can keep refreshing.
@@ -234,25 +239,33 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
 
         {!building && (
           <>
-            <div className="setup-field">
-              <label className="setup-label" htmlFor="anchor-brand">
+            <div className="mb-5.5">
+              <label
+                className="mb-1.5 block text-xs font-semibold text-text-1"
+                htmlFor="anchor-brand"
+              >
                 Your brand
               </label>
               <input
                 id="anchor-brand"
                 type="text"
+                className={cn(fieldBase, "w-full")}
                 placeholder="e.g. UST, Acme Corp, Northwind…"
                 value={anchor}
                 onChange={(e) => setAnchor(e.target.value)}
               />
             </div>
 
-            <div className="setup-field">
-              <label className="setup-label" htmlFor="competitors">
+            <div className="mb-5.5">
+              <label
+                className="mb-1.5 block text-xs font-semibold text-text-1"
+                htmlFor="competitors"
+              >
                 Competitors
               </label>
               <textarea
                 id="competitors"
+                className={cn(textareaBase, "w-full")}
                 placeholder={
                   "One per line or comma-separated, e.g.\nAccenture\nInfosys\nCognizant"
                 }
@@ -260,25 +273,25 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
                 onChange={(e) => setCompetitorsRaw(e.target.value)}
                 rows={6}
               />
-              <div className="setup-hint">
+              <div className="mt-1.5 text-xs leading-normal text-text-3">
                 {competitorsDeduped.length > 0
                   ? `${competitorsDeduped.length} competitor${competitorsDeduped.length === 1 ? "" : "s"} detected: ${competitorsDeduped.slice(0, 6).join(", ")}${competitorsDeduped.length > 6 ? "…" : ""}`
                   : "Separate names with commas or new lines. Up to 30 competitors."}
               </div>
             </div>
 
-            {error && <div className="setup-error">{error}</div>}
+            {error && <div className="mt-2 text-xs text-red">{error}</div>}
 
-            <div className="setup-actions">
+            <div className="mt-2 flex items-center gap-2.5">
               <button
                 type="button"
-                className="pill pill-accent small"
+                className={btnPillAccentSmall}
                 onClick={handleBuild}
               >
                 <i className="ti ti-sparkles" aria-hidden="true" />
                 Build dashboard
               </button>
-              <span className="setup-count">
+              <span className="text-xs text-text-3">
                 {brandCount} brand{brandCount === 1 ? "" : "s"} to research
               </span>
             </div>
@@ -286,22 +299,28 @@ export function SetupScreen({ onStart, onBack }: SetupScreenProps) {
         )}
 
         {building && (
-          <div className="build-progress">
-            <div className="eyebrow">Researching brands</div>
-            <div className="progress-track">
+          <div className="mt-7">
+            <div className="mb-2 text-xs tracking-widest uppercase text-text-3">
+              Researching brands
+            </div>
+            <div className="mt-3.5 h-0.5 overflow-hidden rounded-full bg-border">
               <div
-                className="progress-fill"
+                className="h-full rounded-full bg-accent transition-all duration-300 ease-out"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
-            <div className="progress-label">
+            <div className="mt-1.5 text-xs text-text-3">
               {buildProgress.current} of {buildProgress.total}
             </div>
-            <div className="build-log">
+            <div className="mt-3.5 max-h-56 overflow-y-auto rounded-lg border border-border bg-bg-card px-3.5 py-2.5">
               {buildLog.map((row) => (
                 <div
                   key={row.text}
-                  className={`build-log-row ${row.status === "ok" ? "ok" : row.status === "err" ? "err" : ""}`}
+                  className={cn(
+                    "py-1 font-mono text-xs text-text-2",
+                    row.status === "ok" && "text-accent",
+                    row.status === "err" && "text-red",
+                  )}
                 >
                   {row.status === "ok"
                     ? "✓ "

@@ -1,4 +1,10 @@
 import { useState } from "react";
+import {
+  btnPillAccentSmall,
+  btnPillNeutralSmall,
+  cn,
+  fieldBase,
+} from "../lib/ui";
 
 interface SaveBookmarkPromptProps {
   defaultName: string;
@@ -16,34 +22,40 @@ export function SaveBookmarkPrompt({
   const [name, setName] = useState(defaultName);
 
   return (
-    <div className="save-prompt-overlay">
-      <div className="save-prompt">
-        <div className="save-prompt-title">Save this research?</div>
-        <div className="save-prompt-body">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-overlay p-6">
+      <div className="w-full max-w-md rounded-lg border border-border-strong bg-bg-raised p-7 shadow-2xl">
+        <div className="mb-2 font-serif text-xl font-semibold">
+          Save this research?
+        </div>
+        <div className="mb-4.5 text-sm leading-relaxed text-text-2">
           Give this session a name so you and the team can open it later from
           the bookmark library.
         </div>
-        <label className="setup-label" htmlFor="bookmark-name">
+        <label
+          className="mb-1.5 block text-xs font-semibold text-text-1"
+          htmlFor="bookmark-name"
+        >
           Bookmark name
         </label>
         <input
           id="bookmark-name"
           type="text"
+          className={cn(fieldBase, "mb-4.5 w-full")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. UST vs IT services competitors"
           disabled={saving}
         />
-        <div className="save-prompt-actions">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
-            className="pill pill-accent small"
+            className={btnPillAccentSmall}
             onClick={() => onSave(name.trim() || defaultName)}
             disabled={saving}
           >
             {saving ? (
               <>
-                <i className="ti ti-loader-2 spin" aria-hidden="true" />
+                <i className="ti ti-loader-2 animate-spin" aria-hidden="true" />
                 Saving…
               </>
             ) : (
@@ -55,7 +67,7 @@ export function SaveBookmarkPrompt({
           </button>
           <button
             type="button"
-            className="pill pill-neutral small"
+            className={btnPillNeutralSmall}
             onClick={onSkip}
             disabled={saving}
           >

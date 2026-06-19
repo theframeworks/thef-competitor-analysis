@@ -1,4 +1,9 @@
 import type { ThemePreference } from "../../lib/theme";
+import {
+  btnPillNeutralIcon,
+  btnThemeToggleIcon,
+  btnThemeToggleIconActive,
+} from "../../lib/ui";
 
 interface ThemeToggleProps {
   preference: ThemePreference;
@@ -40,7 +45,7 @@ export function ThemeToggle({
     return (
       <button
         type="button"
-        className="pill pill-neutral pill-icon"
+        className={btnPillNeutralIcon}
         onClick={() => onChange(next)}
         aria-label={`${label} theme. Click to change.`}
       >
@@ -50,12 +55,19 @@ export function ThemeToggle({
   }
 
   return (
-    <fieldset className="theme-toggle" aria-label="Color theme">
+    <fieldset
+      className="m-0 inline-flex min-w-0 items-center gap-1 rounded-full border border-border bg-btn-neutral p-1"
+      aria-label="Color theme"
+    >
       {OPTIONS.map((option) => (
         <button
           key={option.value}
           type="button"
-          className={`pill pill-neutral pill-icon ${preference === option.value ? "is-active" : ""}`}
+          className={
+            preference === option.value
+              ? btnThemeToggleIconActive
+              : btnThemeToggleIcon
+          }
           onClick={() => onChange(option.value)}
           aria-label={`${option.label} theme`}
           aria-pressed={preference === option.value}

@@ -1,3 +1,4 @@
+import { btnPillAccentSmall, cn } from "../lib/ui";
 import type { CrossThemes } from "../types/domain";
 
 interface CrossThemesSectionProps {
@@ -18,25 +19,33 @@ function ThemeGroup({
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="cross-theme-group">
-      <div className="cross-theme-group-head">
-        <i className={`ti ${icon}`} aria-hidden="true" />
+    <div className="mb-5">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-text-2">
+        <i className={`ti ${icon} text-sm text-text-3`} aria-hidden="true" />
         <div>{title}</div>
       </div>
-      <div className="opp-grid">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <div key={item.label} className="opp-card">
-            <div className="opp-title cross-theme-label">{item.label}</div>
+          <div
+            key={item.label}
+            className="rounded-lg border border-border bg-bg-card px-4 py-4"
+          >
+            <div className="mb-2 text-sm font-semibold">{item.label}</div>
             {item.brands && item.brands.length > 0 && (
-              <div className="theme-pills cross-theme-brands">
+              <div className="mb-2 flex flex-wrap gap-1.5">
                 {item.brands.map((b) => (
-                  <span key={b} className="theme-pill">
+                  <span
+                    key={b}
+                    className="rounded-full bg-bg-raised px-2.5 py-1 text-xs leading-snug font-medium text-text-2"
+                  >
                     {b}
                   </span>
                 ))}
               </div>
             )}
-            <div className="opp-body">{item.body}</div>
+            <div className="text-xs leading-normal text-text-2">
+              {item.body}
+            </div>
           </div>
         ))}
       </div>
@@ -56,17 +65,19 @@ export function CrossThemesSection({
       (crossThemes.toneClusters && crossThemes.toneClusters.length > 0));
 
   return (
-    <div className="opp-section">
-      <div className="opp-section-head">
-        <div className="eyebrow eyebrow-flush">Cross-brand themes</div>
+    <div className="mt-9 border-t border-border pt-6.5">
+      <div className="mb-4.5 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="m-0 text-xs tracking-widest uppercase text-text-3">
+          Cross-brand themes
+        </div>
         <button
           type="button"
-          className="pill pill-accent small"
+          className={btnPillAccentSmall}
           onClick={onRefresh}
           disabled={refreshing}
         >
           <i
-            className={`ti ti-refresh ${refreshing ? "spin" : ""}`}
+            className={cn("ti ti-refresh", refreshing && "animate-spin")}
             aria-hidden="true"
           />
           {refreshing ? "Analyzing…" : "Regenerate"}
@@ -91,7 +102,7 @@ export function CrossThemesSection({
           />
         </>
       ) : (
-        <div className="opp-empty">
+        <div className="rounded-lg border border-dashed border-border-strong px-6 py-6 text-center text-sm text-text-3">
           No cross-brand theme analysis yet. Click Regenerate to identify shared
           messaging angles, content themes, and tonal patterns across the full
           brand set.

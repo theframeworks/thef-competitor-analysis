@@ -5,6 +5,13 @@ import {
   researchCrossThemes,
   researchOpportunities,
 } from "../lib/research";
+import {
+  btnPillAccentSmall,
+  btnPillNeutralSmall,
+  cn,
+  fieldBase,
+  selectBase,
+} from "../lib/ui";
 import type { Brand, Project } from "../types/domain";
 import { BrandCard } from "./BrandCard";
 import { BrandListRow } from "./BrandListRow";
@@ -297,49 +304,51 @@ export function Dashboard({
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
-      <div className="topbar">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-5 border-b border-border pb-5">
         <div>
-          <div className="brand-mark">
+          <div className="mb-1.5 font-serif text-sm tracking-widest uppercase text-text-3">
             {project.anchorName} · Brand Intelligence
           </div>
-          <div className="page-title">Competitor Monitor</div>
-          <div className="page-sub">
+          <div className="font-serif text-2xl leading-tight font-semibold text-text-1">
+            Competitor Monitor
+          </div>
+          <div className="mt-1.5 text-sm text-text-2">
             {brands.length} brands tracked
             {fmtTime ? ` · Last updated ${fmtTime}` : ""}
           </div>
           {refreshing && refreshProgress.total > 0 && (
-            <div className="refresh-progress">
-              <div className="progress-track">
+            <div className="max-w-sm">
+              <div className="mt-3.5 h-0.5 overflow-hidden rounded-full bg-border">
                 <div
-                  className="progress-fill"
+                  className="h-full rounded-full bg-accent transition-all duration-300 ease-out"
                   style={{
                     width: `${Math.round((refreshProgress.current / refreshProgress.total) * 100)}%`,
                   }}
                 />
               </div>
-              <div className="progress-label">
+              <div className="mt-1.5 text-xs text-text-3">
                 {refreshProgress.current} of {refreshProgress.total} ·
                 researching {refreshProgress.brand}
               </div>
             </div>
           )}
         </div>
-        <div className="topbar-actions">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="pill pill-accent small"
+            className={btnPillAccentSmall}
             onClick={() => void handleSaveClick()}
             disabled={saving}
           >
             <i
-              className={`ti ti-bookmark ${saving ? "spin" : ""}`}
+              className={cn("ti ti-bookmark", saving && "animate-spin")}
               aria-hidden="true"
             />
             {isSaved ? "Update bookmark" : "Save bookmark"}
           </button>
           <button
             type="button"
-            className="pill pill-neutral small"
+            className={btnPillNeutralSmall}
             onClick={() => setShowSettings(true)}
           >
             <i className="ti ti-settings" aria-hidden="true" />
@@ -347,7 +356,7 @@ export function Dashboard({
           </button>
           <button
             type="button"
-            className="pill pill-neutral small"
+            className={btnPillNeutralSmall}
             onClick={() => setView((v) => (v === "grid" ? "list" : "grid"))}
           >
             <i
@@ -358,12 +367,12 @@ export function Dashboard({
           </button>
           <button
             type="button"
-            className="pill pill-accent small"
+            className={btnPillAccentSmall}
             onClick={refreshAll}
             disabled={refreshing}
           >
             <i
-              className={`ti ti-refresh ${refreshing ? "spin" : ""}`}
+              className={cn("ti ti-refresh", refreshing && "animate-spin")}
               aria-hidden="true"
             />
             {refreshing ? "Researching…" : "Refresh all"}
@@ -371,28 +380,37 @@ export function Dashboard({
         </div>
       </div>
 
-      <div className="anchor-banner">
+      <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-accent-border bg-accent-dim px-4 py-2.5 text-xs text-accent">
         <i className="ti ti-flag-3" aria-hidden="true" />
         Tracking {project.anchorName} against {brands.length - 1} competitor
         {brands.length - 1 === 1 ? "" : "s"}
       </div>
 
-      <div className="toolbar">
-        <div className="search-wrap">
-          <i className="ti ti-search" aria-hidden="true" />
+      <div className="mb-4.5 flex flex-wrap items-center gap-2.5">
+        <div className="relative min-w-40 flex-1 shrink">
+          <i
+            className="ti ti-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-text-3"
+            aria-hidden="true"
+          />
           <input
             type="text"
+            className={cn(fieldBase, "w-full pl-8")}
             placeholder="Search brands or themes…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          className={selectBase}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           {tiers.map((t) => (
             <option key={t}>{t}</option>
           ))}
         </select>
         <select
+          className={selectBase}
           value={sort}
           onChange={(e) => setSort(e.target.value as SortMode)}
         >
@@ -400,20 +418,29 @@ export function Dashboard({
           <option value="activity">Sort: activity</option>
           <option value="linkedin">Sort: LinkedIn scale</option>
         </select>
-        <div className="result-count">{filtered.length} shown</div>
+        <div className="ml-auto text-xs whitespace-nowrap text-text-3">
+          {filtered.length} shown
+        </div>
       </div>
 
-      <div className="stat-grid">
+      <div className="mb-7 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
-          <div key={s.label} className="stat-card">
-            <div className="stat-val">{s.val}</div>
-            <div className="stat-label">{s.label}</div>
+          <div
+            key={s.label}
+            className="rounded-lg border border-border bg-bg-card px-4 py-3.5"
+          >
+            <div className="font-serif text-2xl font-semibold text-text-1">
+              {s.val}
+            </div>
+            <div className="mt-1 text-xs tracking-wide text-text-3">
+              {s.label}
+            </div>
           </div>
         ))}
       </div>
 
       {view === "grid" ? (
-        <div className="brand-grid">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((b) => (
             <BrandCard
               key={b.id}
@@ -425,7 +452,7 @@ export function Dashboard({
           ))}
         </div>
       ) : (
-        <div className="list-table">
+        <div className="overflow-hidden rounded-lg border border-border">
           {filtered.map((b) => (
             <BrandListRow
               key={b.id}
@@ -455,43 +482,50 @@ export function Dashboard({
         refreshing={refreshingThemes || refreshing}
       />
 
-      <div className="opp-section">
-        <div className="opp-section-head">
-          <div className="eyebrow eyebrow-flush">
+      <div className="mt-9 border-t border-border pt-6.5">
+        <div className="mb-4.5 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="m-0 text-xs tracking-widest uppercase text-text-3">
             {project.anchorName} differentiation opportunities
           </div>
           <button
             type="button"
-            className="pill pill-accent small"
+            className={btnPillAccentSmall}
             onClick={refreshOpportunities}
             disabled={refreshingOpps || refreshing}
           >
             <i
-              className={`ti ti-refresh ${refreshingOpps ? "spin" : ""}`}
+              className={cn("ti ti-refresh", refreshingOpps && "animate-spin")}
               aria-hidden="true"
             />
             {refreshingOpps ? "Synthesizing…" : "Regenerate"}
           </button>
         </div>
         {project.opportunities && project.opportunities.length > 0 ? (
-          <div className="opp-grid">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {project.opportunities.map((o, i) => (
-              <div key={o.title} className="opp-card">
-                <div className="opp-num">{String(i + 1).padStart(2, "0")}</div>
-                <div className="opp-title">{o.title}</div>
-                <div className="opp-body">{o.body}</div>
+              <div
+                key={o.title}
+                className="rounded-lg border border-border bg-bg-card px-4 py-4"
+              >
+                <div className="mb-1.5 font-serif text-xs font-bold text-accent">
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <div className="mb-1.5 text-sm font-semibold">{o.title}</div>
+                <div className="text-xs leading-normal text-text-2">
+                  {o.body}
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="opp-empty">
+          <div className="rounded-lg border border-dashed border-border-strong px-6 py-6 text-center text-sm text-text-3">
             No opportunities generated yet. Click Regenerate to synthesize
             differentiation ideas from the current brand set.
           </div>
         )}
       </div>
 
-      <div className="footer-note">
+      <div className="mt-10 flex flex-wrap justify-between gap-2 border-t border-border pt-4.5 text-xs text-text-3">
         <span>
           Research compiled for {project.anchorName} · powered by Claude via a
           server-side proxy

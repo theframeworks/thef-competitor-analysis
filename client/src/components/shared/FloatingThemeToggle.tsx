@@ -5,7 +5,7 @@ export function FloatingThemeToggle() {
   const { preference, setTheme } = useThemeContext();
 
   return (
-    <div className="theme-toggle-float">
+    <div className="fixed top-5 right-5 z-40">
       <ThemeToggle
         preference={preference}
         onChange={setTheme}

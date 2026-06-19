@@ -9,7 +9,7 @@ export function ActivityDot({ level }: ActivityDotProps) {
   const color = ACTIVITY_DOT_COLORS[level as ActivityLevel] ?? "#888";
   return (
     <span
-      className="activity-dot"
+      className="mt-1 inline-block size-2 shrink-0 rounded-full"
       style={{ background: color }}
       aria-hidden="true"
     />
