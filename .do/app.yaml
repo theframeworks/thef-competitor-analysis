@@ -1,30 +1,44 @@
-name: competitor-intel-monitor
-region: lon1
-
-services:
-  - name: web
-    github:
-      repo: theframeworks/thef-competitor-analysis
-      branch: main
-      deploy_on_push: true
-    environment_slug: node-js
-    build_command: npm ci && npm run build
-    run_command: npm start
-    http_port: 8080
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-0.5gb
-    health_check:
-      http_path: /api/health
-    envs:
-      - key: ANTHROPIC_API_KEY
-        scope: RUN_TIME
-        type: SECRET
-      - key: DATABASE_URL
-        scope: RUN_TIME
-        value: ${db.DATABASE_URL}
-
 databases:
-  - name: db
-    engine: PG
-    version: "16"
-    production: false
+- cluster_name: the-hive
+  db_name: competitor-analysis-prd
+  db_user: doadmin
+  engine: PG
+  name: the-hive
+  production: true
+  version: "18"
+features:
+- buildpack-stack=ubuntu-22
+ingress:
+  rules:
+  - component:
+      name: web
+    match:
+      path:
+        prefix: /
+name: competitor-intel-monitor
+region: lon
+services:
+- build_command: npm ci && npm run build
+  environment_slug: node-js
+  envs:
+  - key: ANTHROPIC_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:2wJ5G6z1jUuGhbk1Ms856HnHx3piLb7t:F+fH6u9RF3/NyiM+rtJUSGuH7el7IPKFThsGbpFj2oJjCoW2kDJ6UV9QIyhtAFXx0pFpz0EVnxhqKwLqrlQPN3UHVgzU36uWPmDxfh7pg0xSssqPhw64S3rLTlgw5Qodb2XmcaCzWNo1v4MMwQpHzKAVTqXkw85l/LPqYA==]
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${the-hive.DATABASE_URL}
+  - key: DATABASE_CA_CERT
+    scope: RUN_AND_BUILD_TIME
+    value: ${the-hive.CA_CERT}
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: theframeworks/thef-competitor-analysis
+  health_check:
+    http_path: /api/health
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: web
+  run_command: npm start
