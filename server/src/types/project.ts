@@ -46,11 +46,14 @@ export interface Project {
 
 export type ProjectSummary = Pick<
   Project,
-  'id' | 'name' | 'anchorName' | 'createdAt' | 'updatedAt'
+  "id" | "name" | "anchorName" | "createdAt" | "updatedAt"
 >;
 
-export type CreateProjectInput = Omit<Project, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateProjectInput = Omit<
+  Project,
+  "id" | "createdAt" | "updatedAt"
+>;
 
-export type UpdateProjectInput = Omit<Project, 'createdAt'> & {
+export type UpdateProjectInput = Omit<Project, "createdAt"> & {
   createdAt?: string;
 };

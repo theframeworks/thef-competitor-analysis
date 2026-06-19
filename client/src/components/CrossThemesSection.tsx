@@ -1,4 +1,4 @@
-import type { CrossThemes } from '../types/domain';
+import type { CrossThemes } from "../types/domain";
 
 interface CrossThemesSectionProps {
   crossThemes: CrossThemes | null;
@@ -13,7 +13,7 @@ function ThemeGroup({
 }: {
   title: string;
   icon: string;
-  items: CrossThemes['messagingAngles'] | undefined;
+  items: CrossThemes["messagingAngles"] | undefined;
 }) {
   if (!items || items.length === 0) return null;
 
@@ -24,8 +24,8 @@ function ThemeGroup({
         <div>{title}</div>
       </div>
       <div className="opp-grid">
-        {items.map((item, i) => (
-          <div key={i} className="opp-card">
+        {items.map((item) => (
+          <div key={item.label} className="opp-card">
             <div className="opp-title cross-theme-label">{item.label}</div>
             {item.brands && item.brands.length > 0 && (
               <div className="theme-pills cross-theme-brands">
@@ -63,30 +63,38 @@ export function CrossThemesSection({
           type="button"
           className="pill pill-accent small"
           onClick={onRefresh}
-          disabled={refreshing}><i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />{refreshing ? 'Analyzing…' : 'Regenerate'}</button>
+          disabled={refreshing}
+        >
+          <i
+            className={`ti ti-refresh ${refreshing ? "spin" : ""}`}
+            aria-hidden="true"
+          />
+          {refreshing ? "Analyzing…" : "Regenerate"}
+        </button>
       </div>
       {hasData ? (
         <>
           <ThemeGroup
             title="Common messaging angles"
             icon="ti-message-2"
-            items={crossThemes!.messagingAngles}
+            items={crossThemes?.messagingAngles}
           />
           <ThemeGroup
             title="Recurring content themes"
             icon="ti-stack-2"
-            items={crossThemes!.contentThemes}
+            items={crossThemes?.contentThemes}
           />
           <ThemeGroup
             title="Tone-of-voice clusters"
             icon="ti-vocabulary"
-            items={crossThemes!.toneClusters}
+            items={crossThemes?.toneClusters}
           />
         </>
       ) : (
         <div className="opp-empty">
-          No cross-brand theme analysis yet. Click Regenerate to identify shared messaging
-          angles, content themes, and tonal patterns across the full brand set.
+          No cross-brand theme analysis yet. Click Regenerate to identify shared
+          messaging angles, content themes, and tonal patterns across the full
+          brand set.
         </div>
       )}
     </div>

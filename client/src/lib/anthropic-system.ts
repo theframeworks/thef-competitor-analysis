@@ -1,4 +1,4 @@
-import { TONE_LIST } from '../constants/tone';
+import { TONE_LIST } from "../constants/tone";
 
 /**
  * Shared static instructions for all research API calls. Identical across requests
@@ -17,7 +17,7 @@ export const RESEARCH_SYSTEM_PROMPT = `You are a competitive brand intelligence 
 ## Allowed tone values
 
 The "tone" field in brand research must be exactly one word from this list:
-${TONE_LIST.join(', ')}
+${TONE_LIST.join(", ")}
 
 ## Allowed activity values
 

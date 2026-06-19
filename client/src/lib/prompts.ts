@@ -4,13 +4,13 @@ export function brandResearchPrompt(
   isAnchor: boolean,
   forRefresh = false,
 ): string {
-  const role = isAnchor ? 'anchor' : 'competitor';
+  const role = isAnchor ? "anchor" : "competitor";
   const mode = forRefresh
-    ? 'refresh (focus on recent campaigns and brand moves)'
-    : 'initial (include recent news and positioning context)';
+    ? "refresh (focus on recent campaigns and brand moves)"
+    : "initial (include recent news and positioning context)";
 
   const lines = [
-    'Task: brand research',
+    "Task: brand research",
     `Brand to research: "${name}"`,
     `Anchor brand for this project: "${anchorName}"`,
     `Brand role: ${role}`,
@@ -21,27 +21,33 @@ export function brandResearchPrompt(
     lines.push(`Frame the differentiator field relative to "${anchorName}".`);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
-export function opportunitiesPrompt(anchorName: string, allBrandSummaries: string): string {
+export function opportunitiesPrompt(
+  anchorName: string,
+  allBrandSummaries: string,
+): string {
   return [
-    'Task: differentiation opportunities',
+    "Task: differentiation opportunities",
     `Anchor brand: "${anchorName}"`,
-    '',
-    'Competitor set summaries:',
+    "",
+    "Competitor set summaries:",
     allBrandSummaries,
-  ].join('\n');
+  ].join("\n");
 }
 
-export function crossThemesPrompt(anchorName: string, allBrandSummaries: string): string {
+export function crossThemesPrompt(
+  anchorName: string,
+  allBrandSummaries: string,
+): string {
   return [
-    'Task: cross-brand themes',
+    "Task: cross-brand themes",
     `Anchor brand: "${anchorName}"`,
-    '',
-    'Competitor set summaries:',
+    "",
+    "Competitor set summaries:",
     allBrandSummaries,
-  ].join('\n');
+  ].join("\n");
 }
 
 export function brandSummaryLine(brand: {
@@ -50,7 +56,7 @@ export function brandSummaryLine(brand: {
   tagline: string;
   keyMessage: string;
 }): string {
-  return `${brand.name}${brand.isAnchor ? ' (ANCHOR)' : ''}: ${brand.tagline} — ${brand.keyMessage}`;
+  return `${brand.name}${brand.isAnchor ? " (ANCHOR)" : ""}: ${brand.tagline} — ${brand.keyMessage}`;
 }
 
 export function brandSummaryWithThemes(brand: {
@@ -61,5 +67,5 @@ export function brandSummaryWithThemes(brand: {
   themes: string[];
   tone: string;
 }): string {
-  return `${brandSummaryLine(brand)} | themes: ${(brand.themes || []).join(', ')} | tone: ${brand.tone}`;
+  return `${brandSummaryLine(brand)} | themes: ${(brand.themes || []).join(", ")} | tone: ${brand.tone}`;
 }

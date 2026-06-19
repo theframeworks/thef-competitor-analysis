@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { ProjectSummary } from '../types/domain';
-import { deleteProject, listProjects } from '../lib/projects';
-import { Toast } from './shared/Toast';
+import { useCallback, useEffect, useState } from "react";
+import { deleteProject, listProjects } from "../lib/projects";
+import type { ProjectSummary } from "../types/domain";
+import { Toast } from "./shared/Toast";
 
 interface BookmarkLibraryProps {
   onNewResearch: () => void;
   onLoad: (id: string) => void;
 }
 
-export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps) {
+export function BookmarkLibrary({
+  onNewResearch,
+  onLoad,
+}: BookmarkLibraryProps) {
   const [bookmarks, setBookmarks] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +26,8 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
       const items = await listProjects();
       setBookmarks(items);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Could not load bookmarks';
+      const message =
+        e instanceof Error ? e.message : "Could not load bookmarks";
       setError(message);
     } finally {
       setLoading(false);
@@ -39,7 +43,8 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
     try {
       await onLoad(id);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Could not load bookmark';
+      const message =
+        e instanceof Error ? e.message : "Could not load bookmark";
       setToast(message);
     } finally {
       setLoadingId(null);
@@ -55,7 +60,8 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
       setBookmarks((prev) => prev.filter((b) => b.id !== id));
       setToast(`Deleted "${name}".`);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Could not delete bookmark';
+      const message =
+        e instanceof Error ? e.message : "Could not delete bookmark";
       setToast(message);
     } finally {
       setDeletingId(null);
@@ -64,8 +70,8 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
 
   function fmtTime(iso: string) {
     return new Date(iso).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+      dateStyle: "medium",
+      timeStyle: "short",
     });
   }
 
@@ -80,13 +86,21 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
           </div>
         </div>
         <div className="library-header-actions">
-          <button type="button" className="pill pill-accent small" onClick={onNewResearch}><i className="ti ti-plus" aria-hidden="true" />New research</button>
+          <button
+            type="button"
+            className="pill pill-accent small"
+            onClick={onNewResearch}
+          >
+            <i className="ti ti-plus" aria-hidden="true" />
+            New research
+          </button>
         </div>
       </div>
 
       {loading && (
         <div className="library-state">
-          <i className="ti ti-loader-2 spin" aria-hidden="true" />Loading bookmarks…
+          <i className="ti ti-loader-2 spin" aria-hidden="true" />
+          Loading bookmarks…
         </div>
       )}
 
@@ -96,7 +110,11 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
           <button
             type="button"
             className="pill pill-accent small"
-            onClick={() => void loadBookmarks()}><i className="ti ti-refresh" aria-hidden="true" />Retry</button>
+            onClick={() => void loadBookmarks()}
+          >
+            <i className="ti ti-refresh" aria-hidden="true" />
+            Retry
+          </button>
         </div>
       )}
 
@@ -118,21 +136,33 @@ export function BookmarkLibrary({ onNewResearch, onLoad }: BookmarkLibraryProps)
                 type="button"
                 className="bookmark-main"
                 onClick={() => void handleOpen(bookmark.id)}
-                disabled={loadingId === bookmark.id || deletingId === bookmark.id}><div className="bookmark-name">{bookmark.name}</div>
-                <div className="bookmark-meta">{loadingId === bookmark.id ? (
-                    <><i className="ti ti-loader-2 spin" aria-hidden="true" />Opening…</>
+                disabled={
+                  loadingId === bookmark.id || deletingId === bookmark.id
+                }
+              >
+                <div className="bookmark-name">{bookmark.name}</div>
+                <div className="bookmark-meta">
+                  {loadingId === bookmark.id ? (
+                    <>
+                      <i className="ti ti-loader-2 spin" aria-hidden="true" />
+                      Opening…
+                    </>
                   ) : (
                     <>
                       <span>{bookmark.anchorName}</span>
                       <span className="bookmark-dot">·</span>
                       <span>Updated {fmtTime(bookmark.updatedAt)}</span>
                     </>
-                  )}</div></button>
+                  )}
+                </div>
+              </button>
               <button
                 type="button"
                 className="pill pill-danger pill-icon bookmark-delete"
                 onClick={() => void handleDelete(bookmark.id, bookmark.name)}
-                disabled={loadingId === bookmark.id || deletingId === bookmark.id}
+                disabled={
+                  loadingId === bookmark.id || deletingId === bookmark.id
+                }
                 aria-label={`Delete ${bookmark.name}`}
                 title="Delete bookmark"
               >

@@ -1,6 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { getPrisma } from '../db/client.js';
-import { StorageError } from './errors.js';
+import { Prisma } from "@prisma/client";
+import { getPrisma } from "../db/client.js";
 import type {
   Brand,
   CreateProjectInput,
@@ -8,7 +7,8 @@ import type {
   Opportunity,
   Project,
   ProjectSummary,
-} from '../types/project.js';
+} from "../types/project.js";
+import { StorageError } from "./errors.js";
 
 type ProjectRow = {
   id: string;
@@ -35,7 +35,10 @@ function toProject(row: ProjectRow): Project {
 }
 
 function toSummary(
-  row: Pick<ProjectRow, 'id' | 'name' | 'anchorName' | 'createdAt' | 'updatedAt'>,
+  row: Pick<
+    ProjectRow,
+    "id" | "name" | "anchorName" | "createdAt" | "updatedAt"
+  >,
 ): ProjectSummary {
   return {
     id: row.id,
@@ -65,11 +68,14 @@ function createInputToData(
 
 function handlePrismaError(err: unknown, id?: string): never {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === 'P2002') {
-      throw new StorageError(`Project "${id ?? 'unknown'}" already exists.`, 409);
+    if (err.code === "P2002") {
+      throw new StorageError(
+        `Project "${id ?? "unknown"}" already exists.`,
+        409,
+      );
     }
-    if (err.code === 'P2025') {
-      throw new StorageError(`Project "${id ?? 'unknown'}" not found.`, 404);
+    if (err.code === "P2025") {
+      throw new StorageError(`Project "${id ?? "unknown"}" not found.`, 404);
     }
   }
 
@@ -78,7 +84,7 @@ function handlePrismaError(err: unknown, id?: string): never {
 
 export async function listProjects(): Promise<ProjectSummary[]> {
   const rows = await getPrisma().project.findMany({
-    orderBy: { updatedAt: 'desc' },
+    orderBy: { updatedAt: "desc" },
     select: {
       id: true,
       name: true,
@@ -130,7 +136,8 @@ export async function updateProject(project: Project): Promise<Project> {
         name: project.name,
         anchorName: project.anchorName,
         brands: project.brands as unknown as Prisma.InputJsonValue,
-        opportunities: project.opportunities as unknown as Prisma.InputJsonValue,
+        opportunities:
+          project.opportunities as unknown as Prisma.InputJsonValue,
         crossThemes:
           project.crossThemes === null
             ? Prisma.JsonNull

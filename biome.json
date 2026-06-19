@@ -1,53 +1,47 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
-	},
-	"files": {
-		"ignoreUnknown": false
-	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab"
-	},
-	"linter": {
-		"enabled": true,
-		"domains": {
-			"react": "recommended",
-			"types": "recommended"
-		},
-		"rules": {
-			"preset": "recommended",
-			"a11y": {
-				"recommended": true
-			}
-		}
-	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double"
-		},
-		"jsxRuntime": "transparent"
-	},
-	"css": {
-		"parser": {
-			"tailwindDirectives": true
-		},
-		"formatter": {
-			"enabled": true
-		},
-		"linter": {
-			"enabled": true
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
-	}
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "domains": {
+      "types": "recommended"
+    },
+    "rules": {
+      "preset": "recommended",
+      "a11y": {
+        "recommended": true
+      },
+      "style": {
+        "useImportType": "error",
+        "useExportType": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  }
 }

@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { AppRoute } from '../lib/routes';
-import { navigateTo, parsePath, pathForRoute, replacePath } from '../lib/routes';
+import { useCallback, useEffect, useState } from "react";
+import type { AppRoute } from "../lib/routes";
+import {
+  navigateTo,
+  parsePath,
+  pathForRoute,
+  replacePath,
+} from "../lib/routes";
 
-export function useAppRouter(onRouteChange: (route: AppRoute) => Promise<void>) {
+export function useAppRouter(
+  onRouteChange: (route: AppRoute) => Promise<void>,
+) {
   const [ready, setReady] = useState(false);
 
   const applyRoute = useCallback(
@@ -23,10 +30,10 @@ export function useAppRouter(onRouteChange: (route: AppRoute) => Promise<void>) 
       void applyRoute(parsePath(window.location.pathname));
     };
 
-    window.addEventListener('popstate', onPopState);
+    window.addEventListener("popstate", onPopState);
     return () => {
       active = false;
-      window.removeEventListener('popstate', onPopState);
+      window.removeEventListener("popstate", onPopState);
     };
   }, [applyRoute]);
 

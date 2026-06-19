@@ -1,5 +1,5 @@
-import { Root } from './components/Root';
-import { FloatingThemeToggle } from './components/shared/FloatingThemeToggle';
+import { Root } from "./components/Root";
+import { FloatingThemeToggle } from "./components/shared/FloatingThemeToggle";
 
 export default function App() {
   return (

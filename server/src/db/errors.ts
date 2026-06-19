@@ -3,7 +3,7 @@ export class StorageError extends Error {
 
   constructor(message: string, status: number) {
     super(message);
-    this.name = 'StorageError';
+    this.name = "StorageError";
     this.status = status;
   }
 }

@@ -7,32 +7,31 @@
  *
  * Defaults to data/projects/ at the repo root.
  */
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import '../src/env.js';
-import { disconnectPrisma, getPrisma } from '../src/db/client.js';
-import type { Project } from '../src/types/project.js';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import "../src/env.js";
+import { disconnectPrisma, getPrisma } from "../src/db/client.js";
+import type { Project } from "../src/types/project.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main(): Promise<void> {
   const sourceDir =
-    process.argv[2]?.trim() ||
-    path.resolve(__dirname, '../../data/projects');
+    process.argv[2]?.trim() || path.resolve(__dirname, "../../data/projects");
 
   let entries: string[];
   try {
     entries = await fs.readdir(sourceDir);
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       console.log(`No directory at ${sourceDir}; nothing to import.`);
       return;
     }
     throw err;
   }
 
-  const jsonFiles = entries.filter((name) => name.endsWith('.json'));
+  const jsonFiles = entries.filter((name) => name.endsWith(".json"));
   if (jsonFiles.length === 0) {
     console.log(`No JSON files in ${sourceDir}.`);
     return;
@@ -43,10 +42,12 @@ async function main(): Promise<void> {
   let skipped = 0;
 
   for (const filename of jsonFiles) {
-    const raw = await fs.readFile(path.join(sourceDir, filename), 'utf8');
+    const raw = await fs.readFile(path.join(sourceDir, filename), "utf8");
     const project = JSON.parse(raw) as Project;
 
-    const existing = await prisma.project.findUnique({ where: { id: project.id } });
+    const existing = await prisma.project.findUnique({
+      where: { id: project.id },
+    });
     if (existing) {
       skipped += 1;
       continue;
@@ -67,7 +68,9 @@ async function main(): Promise<void> {
     imported += 1;
   }
 
-  console.log(`Import complete: ${imported} created, ${skipped} skipped (already exist).`);
+  console.log(
+    `Import complete: ${imported} created, ${skipped} skipped (already exist).`,
+  );
 }
 
 main()

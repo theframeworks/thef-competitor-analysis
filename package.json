@@ -16,13 +16,16 @@
     "typecheck": "npm run typecheck --workspace=client && npm run typecheck --workspace=server",
     "test": "npm run test --workspace=server",
     "lint": "biome check .",
+    "lint:staged": "biome check --staged --no-errors-on-unmatched",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "format:check": "biome format ."
+    "format:check": "biome format .",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
     "concurrently": "^10.0.3",
+    "husky": "^9.1.7",
     "wait-on": "^8.0.3"
   }
 }

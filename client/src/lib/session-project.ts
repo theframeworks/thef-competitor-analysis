@@ -1,6 +1,6 @@
-import type { Project } from '../types/domain';
+import type { Project } from "../types/domain";
 
-const SESSION_KEY = 'cim-session-project';
+const SESSION_KEY = "cim-session-project";
 
 export function saveSessionProject(project: Project) {
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(project));

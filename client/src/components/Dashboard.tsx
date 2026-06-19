@@ -1,18 +1,22 @@
-import { useCallback, useRef, useState } from 'react';
-import { ACTIVITY_ORDER } from '../constants/tone';
-import { researchBrandData, researchCrossThemes, researchOpportunities } from '../lib/research';
-import type { Brand, Project } from '../types/domain';
-import { BrandCard } from './BrandCard';
-import { BrandListRow } from './BrandListRow';
-import { CrossThemesSection } from './CrossThemesSection';
-import { DetailPanel } from './DetailPanel';
-import { SettingsPanel } from './SettingsPanel';
-import { BackLink } from './shared/BackLink';
-import { Toast } from './shared/Toast';
+import { useCallback, useRef, useState } from "react";
+import { ACTIVITY_ORDER } from "../constants/tone";
+import {
+  researchBrandData,
+  researchCrossThemes,
+  researchOpportunities,
+} from "../lib/research";
+import type { Brand, Project } from "../types/domain";
+import { BrandCard } from "./BrandCard";
+import { BrandListRow } from "./BrandListRow";
+import { CrossThemesSection } from "./CrossThemesSection";
+import { DetailPanel } from "./DetailPanel";
+import { SettingsPanel } from "./SettingsPanel";
+import { BackLink } from "./shared/BackLink";
+import { Toast } from "./shared/Toast";
 
-type DetailTab = 'overview' | 'content' | 'differentiation';
-type ViewMode = 'grid' | 'list';
-type SortMode = 'name' | 'activity' | 'linkedin';
+type DetailTab = "overview" | "content" | "differentiation";
+type ViewMode = "grid" | "list";
+type SortMode = "name" | "activity" | "linkedin";
 
 interface DashboardProps {
   project: Project;
@@ -34,17 +38,17 @@ export function Dashboard({
   onBackToLibrary,
 }: DashboardProps) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [filter, setFilter] = useState('All');
-  const [sort, setSort] = useState<SortMode>('name');
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState("All");
+  const [sort, setSort] = useState<SortMode>("name");
+  const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [refreshProgress, setRefreshProgress] = useState({
     current: 0,
     total: 0,
-    brand: '',
+    brand: "",
   });
-  const [view, setView] = useState<ViewMode>('grid');
-  const [activeTab, setActiveTab] = useState<DetailTab>('overview');
+  const [view, setView] = useState<ViewMode>("grid");
+  const [activeTab, setActiveTab] = useState<DetailTab>("overview");
   const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [refreshingOpps, setRefreshingOpps] = useState(false);
@@ -54,28 +58,34 @@ export function Dashboard({
   projectRef.current = project;
 
   const brands = project.brands;
-  const tiers = ['All', ...Array.from(new Set(brands.map((b) => b.tier))).sort()];
+  const tiers = [
+    "All",
+    ...Array.from(new Set(brands.map((b) => b.tier))).sort(),
+  ];
 
-  function touchUpdated(newBrands?: Brand[], newOpps?: Project['opportunities']) {
-    const updatedAt = new Date().toISOString();
-    updateProject((prev) => ({
-      ...prev,
-      brands: newBrands ?? prev.brands,
-      opportunities: newOpps !== undefined ? newOpps : prev.opportunities,
-      updatedAt,
-    }));
-    const current = projectRef.current;
-    return {
-      ...current,
-      brands: newBrands ?? current.brands,
-      opportunities: newOpps !== undefined ? newOpps : current.opportunities,
-      updatedAt,
-    };
-  }
+  const touchUpdated = useCallback(
+    (newBrands?: Brand[], newOpps?: Project["opportunities"]) => {
+      const updatedAt = new Date().toISOString();
+      updateProject((prev) => ({
+        ...prev,
+        brands: newBrands ?? prev.brands,
+        opportunities: newOpps !== undefined ? newOpps : prev.opportunities,
+        updatedAt,
+      }));
+      const current = projectRef.current;
+      return {
+        ...current,
+        brands: newBrands ?? current.brands,
+        opportunities: newOpps !== undefined ? newOpps : current.opportunities,
+        updatedAt,
+      };
+    },
+    [updateProject],
+  );
 
   function promptBookmarkName(): string | null {
     const defaultName = project.name ?? `${project.anchorName} competitors`;
-    const name = window.prompt('Bookmark name:', defaultName);
+    const name = window.prompt("Bookmark name:", defaultName);
     if (name === null) return null;
     return name.trim() || defaultName;
   }
@@ -86,26 +96,29 @@ export function Dashboard({
     try {
       await onSaveBookmark(name);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Could not save bookmark';
+      const message =
+        e instanceof Error ? e.message : "Could not save bookmark";
       setToast(message);
     }
   }
 
   const filtered = brands
-    .filter((b) => filter === 'All' || b.tier === filter)
+    .filter((b) => filter === "All" || b.tier === filter)
     .filter(
       (b) =>
         !search ||
         b.name.toLowerCase().includes(search.toLowerCase()) ||
-        (b.themes || []).some((t) => t.toLowerCase().includes(search.toLowerCase())),
+        (b.themes || []).some((t) =>
+          t.toLowerCase().includes(search.toLowerCase()),
+        ),
     )
     .sort((a, b) => {
       if (a.isAnchor) return -1;
       if (b.isAnchor) return 1;
-      if (sort === 'name') return a.name.localeCompare(b.name);
-      if (sort === 'activity')
+      if (sort === "name") return a.name.localeCompare(b.name);
+      if (sort === "activity")
         return ACTIVITY_ORDER[b.activity] - ACTIVITY_ORDER[a.activity];
-      if (sort === 'linkedin') return b.linkedin - a.linkedin;
+      if (sort === "linkedin") return b.linkedin - a.linkedin;
       return 0;
     });
 
@@ -113,14 +126,18 @@ export function Dashboard({
     cancelRef.current = false;
     setRefreshing(true);
     const list = [...brands];
-    setRefreshProgress({ current: 0, total: list.length, brand: '' });
+    setRefreshProgress({ current: 0, total: list.length, brand: "" });
     let errorCount = 0;
     let updated = [...brands];
 
     for (let i = 0; i < list.length; i++) {
       if (cancelRef.current) break;
       const brand = list[i];
-      setRefreshProgress({ current: i + 1, total: list.length, brand: brand.name });
+      setRefreshProgress({
+        current: i + 1,
+        total: list.length,
+        brand: brand.name,
+      });
       try {
         const parsed = await researchBrandData(
           brand.name,
@@ -128,7 +145,9 @@ export function Dashboard({
           brand.isAnchor,
           true,
         );
-        updated = updated.map((b) => (b.id === brand.id ? { ...b, ...parsed } : b));
+        updated = updated.map((b) =>
+          b.id === brand.id ? { ...b, ...parsed } : b,
+        );
         touchUpdated(updated);
       } catch {
         errorCount++;
@@ -137,7 +156,7 @@ export function Dashboard({
     }
 
     setRefreshing(false);
-    setRefreshProgress({ current: 0, total: 0, brand: '' });
+    setRefreshProgress({ current: 0, total: 0, brand: "" });
     const finalProject = {
       ...projectRef.current,
       brands: updated,
@@ -149,10 +168,10 @@ export function Dashboard({
       setToast(
         errorCount > 0
           ? `Refreshed with ${errorCount} error(s). Cached data kept for those brands.`
-          : 'All brands refreshed successfully.',
+          : "All brands refreshed successfully.",
       );
     }
-  }, [brands, project.id, onPersist]);
+  }, [brands, project.id, onPersist, touchUpdated, project.anchorName]);
 
   const refreshOne = useCallback(
     async (brandId: string) => {
@@ -167,20 +186,22 @@ export function Dashboard({
           brand.isAnchor,
           true,
         );
-        const updated = brands.map((b) => (b.id === brandId ? { ...b, ...parsed } : b));
+        const updated = brands.map((b) =>
+          b.id === brandId ? { ...b, ...parsed } : b,
+        );
         const finalProject = touchUpdated(updated);
         const persisted = project.id ? await onPersist(finalProject) : true;
         if (persisted) {
           setToast(`${brand.name} refreshed.`);
         }
       } catch (e) {
-        const message = e instanceof Error ? e.message : 'Unknown error';
+        const message = e instanceof Error ? e.message : "Unknown error";
         setToast(`Could not refresh ${brand.name}: ${message}`);
       }
       setRefreshing(false);
-      setRefreshProgress({ current: 0, total: 0, brand: '' });
+      setRefreshProgress({ current: 0, total: 0, brand: "" });
     },
-    [brands, project, onPersist],
+    [brands, project, onPersist, touchUpdated],
   );
 
   const refreshOpportunities = useCallback(async () => {
@@ -190,21 +211,25 @@ export function Dashboard({
       const finalProject = touchUpdated(undefined, opps);
       const persisted = project.id ? await onPersist(finalProject) : true;
       if (persisted) {
-        setToast('Opportunities regenerated.');
+        setToast("Opportunities regenerated.");
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error';
+      const message = e instanceof Error ? e.message : "Unknown error";
       setToast(`Could not regenerate opportunities: ${message}`);
     }
     setRefreshingOpps(false);
-  }, [brands, project, onPersist]);
+  }, [brands, project, onPersist, touchUpdated]);
 
   const refreshCrossThemes = useCallback(async () => {
     setRefreshingThemes(true);
     try {
       const themes = await researchCrossThemes(project.anchorName, brands);
       const updatedAt = new Date().toISOString();
-      const finalProject = { ...projectRef.current, crossThemes: themes, updatedAt };
+      const finalProject = {
+        ...projectRef.current,
+        crossThemes: themes,
+        updatedAt,
+      };
       updateProject((prev) => ({
         ...prev,
         crossThemes: themes,
@@ -212,40 +237,44 @@ export function Dashboard({
       }));
       const persisted = project.id ? await onPersist(finalProject) : true;
       if (persisted) {
-        setToast('Cross-brand themes regenerated.');
+        setToast("Cross-brand themes regenerated.");
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error';
+      const message = e instanceof Error ? e.message : "Unknown error";
       setToast(`Could not regenerate themes: ${message}`);
     }
     setRefreshingThemes(false);
-  }, [brands, project, onPersist]);
+  }, [brands, project, onPersist, updateProject]);
 
   function selectBrand(id: string) {
     setSelected((prev) => (prev === id ? null : id));
-    setActiveTab('overview');
+    setActiveTab("overview");
   }
 
   const selectedBrand = brands.find((b) => b.id === selected);
   const fmtTime = project.updatedAt
     ? new Date(project.updatedAt).toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
+        dateStyle: "medium",
+        timeStyle: "short",
       })
     : null;
 
   const stats = [
     {
-      label: 'Very high activity',
-      val: brands.filter((b) => b.activity === 'very-high').length,
+      label: "Very high activity",
+      val: brands.filter((b) => b.activity === "very-high").length,
     },
-    { label: 'High activity', val: brands.filter((b) => b.activity === 'high').length },
-    { label: 'Tiers represented', val: tiers.length - 1 },
-    { label: 'Competitors tracked', val: brands.length - 1 },
     {
-      label: 'Avg LinkedIn scale',
-      val:
-        Math.round(brands.reduce((s, b) => s + (b.linkedin || 0), 0) / brands.length) + 'K',
+      label: "High activity",
+      val: brands.filter((b) => b.activity === "high").length,
+    },
+    { label: "Tiers represented", val: tiers.length - 1 },
+    { label: "Competitors tracked", val: brands.length - 1 },
+    {
+      label: "Avg LinkedIn scale",
+      val: `${Math.round(
+        brands.reduce((s, b) => s + (b.linkedin || 0), 0) / brands.length,
+      )}K`,
     },
   ];
 
@@ -256,7 +285,7 @@ export function Dashboard({
       </h1>
 
       <BackLink
-        label={selectedBrand ? 'Back to list' : 'Back to library'}
+        label={selectedBrand ? "Back to list" : "Back to library"}
         onClick={() => {
           if (selectedBrand) {
             setSelected(null);
@@ -266,17 +295,17 @@ export function Dashboard({
         }}
       />
 
-      {showSettings && (
-        <SettingsPanel onClose={() => setShowSettings(false)} />
-      )}
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
       <div className="topbar">
         <div>
-          <div className="brand-mark">{project.anchorName} · Brand Intelligence</div>
+          <div className="brand-mark">
+            {project.anchorName} · Brand Intelligence
+          </div>
           <div className="page-title">Competitor Monitor</div>
           <div className="page-sub">
             {brands.length} brands tracked
-            {fmtTime ? ` · Last updated ${fmtTime}` : ''}
+            {fmtTime ? ` · Last updated ${fmtTime}` : ""}
           </div>
           {refreshing && refreshProgress.total > 0 && (
             <div className="refresh-progress">
@@ -289,8 +318,8 @@ export function Dashboard({
                 />
               </div>
               <div className="progress-label">
-                {refreshProgress.current} of {refreshProgress.total} · researching{' '}
-                {refreshProgress.brand}
+                {refreshProgress.current} of {refreshProgress.total} ·
+                researching {refreshProgress.brand}
               </div>
             </div>
           )}
@@ -300,30 +329,52 @@ export function Dashboard({
             type="button"
             className="pill pill-accent small"
             onClick={() => void handleSaveClick()}
-            disabled={saving}><i className={`ti ti-bookmark ${saving ? 'spin' : ''}`} aria-hidden="true" />{isSaved ? 'Update bookmark' : 'Save bookmark'}</button>
-          <button
-            type="button"
-            className="pill pill-neutral small"
-            onClick={() => setShowSettings(true)}><i className="ti ti-settings" aria-hidden="true" />Settings</button>
-          <button
-            type="button"
-            className="pill pill-neutral small"
-            onClick={() => setView((v) => (v === 'grid' ? 'list' : 'grid'))}><i
-              className={`ti ${view === 'grid' ? 'ti-list' : 'ti-layout-grid'}`}
+            disabled={saving}
+          >
+            <i
+              className={`ti ti-bookmark ${saving ? "spin" : ""}`}
               aria-hidden="true"
-            />{view === 'grid' ? 'List' : 'Grid'}</button>
+            />
+            {isSaved ? "Update bookmark" : "Save bookmark"}
+          </button>
+          <button
+            type="button"
+            className="pill pill-neutral small"
+            onClick={() => setShowSettings(true)}
+          >
+            <i className="ti ti-settings" aria-hidden="true" />
+            Settings
+          </button>
+          <button
+            type="button"
+            className="pill pill-neutral small"
+            onClick={() => setView((v) => (v === "grid" ? "list" : "grid"))}
+          >
+            <i
+              className={`ti ${view === "grid" ? "ti-list" : "ti-layout-grid"}`}
+              aria-hidden="true"
+            />
+            {view === "grid" ? "List" : "Grid"}
+          </button>
           <button
             type="button"
             className="pill pill-accent small"
             onClick={refreshAll}
-            disabled={refreshing}><i className={`ti ti-refresh ${refreshing ? 'spin' : ''}`} aria-hidden="true" />{refreshing ? 'Researching…' : 'Refresh all'}</button>
+            disabled={refreshing}
+          >
+            <i
+              className={`ti ti-refresh ${refreshing ? "spin" : ""}`}
+              aria-hidden="true"
+            />
+            {refreshing ? "Researching…" : "Refresh all"}
+          </button>
         </div>
       </div>
 
       <div className="anchor-banner">
         <i className="ti ti-flag-3" aria-hidden="true" />
         Tracking {project.anchorName} against {brands.length - 1} competitor
-        {brands.length - 1 === 1 ? '' : 's'}
+        {brands.length - 1 === 1 ? "" : "s"}
       </div>
 
       <div className="toolbar">
@@ -341,7 +392,10 @@ export function Dashboard({
             <option key={t}>{t}</option>
           ))}
         </select>
-        <select value={sort} onChange={(e) => setSort(e.target.value as SortMode)}>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortMode)}
+        >
           <option value="name">Sort: A–Z</option>
           <option value="activity">Sort: activity</option>
           <option value="linkedin">Sort: LinkedIn scale</option>
@@ -358,7 +412,7 @@ export function Dashboard({
         ))}
       </div>
 
-      {view === 'grid' ? (
+      {view === "grid" ? (
         <div className="brand-grid">
           {filtered.map((b) => (
             <BrandCard
@@ -410,16 +464,20 @@ export function Dashboard({
             type="button"
             className="pill pill-accent small"
             onClick={refreshOpportunities}
-            disabled={refreshingOpps || refreshing}><i
-              className={`ti ti-refresh ${refreshingOpps ? 'spin' : ''}`}
+            disabled={refreshingOpps || refreshing}
+          >
+            <i
+              className={`ti ti-refresh ${refreshingOpps ? "spin" : ""}`}
               aria-hidden="true"
-            />{refreshingOpps ? 'Synthesizing…' : 'Regenerate'}</button>
+            />
+            {refreshingOpps ? "Synthesizing…" : "Regenerate"}
+          </button>
         </div>
         {project.opportunities && project.opportunities.length > 0 ? (
           <div className="opp-grid">
             {project.opportunities.map((o, i) => (
-              <div key={i} className="opp-card">
-                <div className="opp-num">{String(i + 1).padStart(2, '0')}</div>
+              <div key={o.title} className="opp-card">
+                <div className="opp-num">{String(i + 1).padStart(2, "0")}</div>
                 <div className="opp-title">{o.title}</div>
                 <div className="opp-body">{o.body}</div>
               </div>
@@ -427,21 +485,21 @@ export function Dashboard({
           </div>
         ) : (
           <div className="opp-empty">
-            No opportunities generated yet. Click Regenerate to synthesize differentiation ideas
-            from the current brand set.
+            No opportunities generated yet. Click Regenerate to synthesize
+            differentiation ideas from the current brand set.
           </div>
         )}
       </div>
 
       <div className="footer-note">
         <span>
-          Research compiled for {project.anchorName} · powered by Claude via a server-side
-          proxy
+          Research compiled for {project.anchorName} · powered by Claude via a
+          server-side proxy
         </span>
         <span>
           {isSaved
-            ? `Bookmark saved${project.name ? `: ${project.name}` : ''}`
-            : 'Unsaved session — save to share with the team'}
+            ? `Bookmark saved${project.name ? `: ${project.name}` : ""}`
+            : "Unsaved session — save to share with the team"}
         </span>
       </div>
 

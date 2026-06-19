@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 interface ToastProps {
   text: string;
@@ -9,7 +9,7 @@ export function Toast({ text, onDismiss }: ToastProps) {
   useEffect(() => {
     const t = setTimeout(onDismiss, 4000);
     return () => clearTimeout(t);
-  }, [text, onDismiss]);
+  }, [onDismiss]);
 
   return <div className="toast">{text}</div>;
 }

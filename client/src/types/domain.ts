@@ -1,4 +1,4 @@
-export type ActivityLevel = 'very-high' | 'high' | 'medium' | 'low';
+export type ActivityLevel = "very-high" | "high" | "medium" | "low";
 
 export interface Brand {
   id: string;
@@ -47,7 +47,7 @@ export interface Project {
 }
 
 export type ProjectSummary = Required<
-  Pick<Project, 'id' | 'name' | 'anchorName' | 'createdAt' | 'updatedAt'>
+  Pick<Project, "id" | "name" | "anchorName" | "createdAt" | "updatedAt">
 >;
 
 export interface BrandResearchData {
@@ -67,5 +67,5 @@ export interface BrandResearchData {
 
 export interface BuildLogRow {
   text: string;
-  status: 'pending' | 'ok' | 'err';
+  status: "pending" | "ok" | "err";
 }

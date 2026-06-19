@@ -1,7 +1,7 @@
-import { TONE_COLORS } from '../constants/tone';
-import type { Brand } from '../types/domain';
-import { ActivityDot } from './shared/ActivityDot';
-import { TierBadge } from './shared/TierBadge';
+import { TONE_COLORS } from "../constants/tone";
+import type { Brand } from "../types/domain";
+import { ActivityDot } from "./shared/ActivityDot";
+import { TierBadge } from "./shared/TierBadge";
 
 interface BrandCardProps {
   brand: Brand;
@@ -10,21 +10,19 @@ interface BrandCardProps {
   onSelect: () => void;
 }
 
-export function BrandCard({ brand, selected, tiers, onSelect }: BrandCardProps) {
-  const toneColor = TONE_COLORS[brand.tone] ?? 'var(--color-text-2)';
+export function BrandCard({
+  brand,
+  selected,
+  tiers,
+  onSelect,
+}: BrandCardProps) {
+  const toneColor = TONE_COLORS[brand.tone] ?? "var(--color-text-2)";
 
   return (
-    <div
-      className={`brand-card ${selected ? 'selected' : ''} ${brand.isAnchor ? 'is-anchor' : ''}`}
+    <button
+      type="button"
+      className={`brand-card ${selected ? "selected" : ""} ${brand.isAnchor ? "is-anchor" : ""}`}
       onClick={onSelect}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
     >
       <div className="brand-card-head">
         <div>
@@ -50,11 +48,13 @@ export function BrandCard({ brand, selected, tiers, onSelect }: BrandCardProps) 
       <div className="card-footer">
         <div>
           <span className="channel-stat">
-            <i className="ti ti-brand-linkedin" aria-hidden="true" /> {brand.linkedin || 0}K
+            <i className="ti ti-brand-linkedin" aria-hidden="true" />{" "}
+            {brand.linkedin || 0}K
           </span>
           {(brand.instagram || 0) > 0 && (
             <span className="channel-stat">
-              <i className="ti ti-brand-instagram" aria-hidden="true" /> {brand.instagram}K
+              <i className="ti ti-brand-instagram" aria-hidden="true" />{" "}
+              {brand.instagram}K
             </span>
           )}
         </div>
@@ -62,6 +62,6 @@ export function BrandCard({ brand, selected, tiers, onSelect }: BrandCardProps) 
           {brand.tone}
         </span>
       </div>
-    </div>
+    </button>
   );
 }

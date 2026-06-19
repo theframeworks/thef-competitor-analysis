@@ -1,8 +1,8 @@
-import cors from 'cors';
-import express from 'express';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { projectsRouter } from './routes/projects.js';
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import cors from "cors";
+import express from "express";
+import { projectsRouter } from "./routes/projects.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,63 +12,66 @@ export interface CreateAppOptions {
 
 export function createApp(options: CreateAppOptions = {}): express.Application {
   const app = express();
-  const isProduction = options.isProduction ?? process.env.NODE_ENV === 'production';
-  const clientDist = path.resolve(__dirname, '../../client/dist');
+  const isProduction =
+    options.isProduction ?? process.env.NODE_ENV === "production";
+  const clientDist = path.resolve(__dirname, "../../client/dist");
 
   app.use(cors());
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: "10mb" }));
 
-  app.get('/api/health', (_req, res) => {
+  app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
   });
 
-  app.use('/api/projects', projectsRouter);
+  app.use("/api/projects", projectsRouter);
 
-  app.post('/api/messages', async (req, res) => {
+  app.post("/api/messages", async (req, res) => {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      res.status(500).json({ error: 'Server not configured: missing API key.' });
+      res
+        .status(500)
+        .json({ error: "Server not configured: missing API key." });
       return;
     }
 
     let payload: unknown;
     try {
       payload = req.body;
-      if (!payload || typeof payload !== 'object') {
-        throw new Error('Invalid body');
+      if (!payload || typeof payload !== "object") {
+        throw new Error("Invalid body");
       }
     } catch {
-      res.status(400).json({ error: 'Invalid JSON body.' });
+      res.status(400).json({ error: "Invalid JSON body." });
       return;
     }
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify(payload),
       });
 
       const text = await response.text();
-      res.status(response.status).type('application/json').send(text);
+      res.status(response.status).type("application/json").send(text);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
+      const message = err instanceof Error ? err.message : "Unknown error";
       res.status(502).json({ error: `Anthropic proxy failed: ${message}` });
     }
   });
 
   if (isProduction) {
     app.use(express.static(clientDist));
-    app.get('{*path}', (req, res, next) => {
-      if (req.path.startsWith('/api')) {
+    app.get("{*path}", (req, res, next) => {
+      if (req.path.startsWith("/api")) {
         next();
         return;
       }
-      res.sendFile(path.join(clientDist, 'index.html'));
+      res.sendFile(path.join(clientDist, "index.html"));
     });
   }
 

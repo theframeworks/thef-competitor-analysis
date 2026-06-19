@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { resolveDatabaseUrl } from './config.js';
+import { PrismaClient } from "@prisma/client";
+import { resolveDatabaseUrl } from "./config.js";
 
 let prismaInstance: PrismaClient | undefined;
 let connectedUrl: string | undefined;
