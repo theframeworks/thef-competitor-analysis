@@ -1,22 +1,20 @@
-import dotenv from 'dotenv';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import './env.js';
 import { createApp } from './app.js';
-import { describeStorageMode, getStorageMode } from './storage/mode.js';
+import { describeDatabase } from './db/config.js';
+import { ensureDatabaseUrl } from './db/client.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-const app = createApp();
-const port = Number(process.env.PORT) || 8080;
-const storageMode = getStorageMode();
-
-if (storageMode === 'postgres' && !process.env.DATABASE_URL?.trim()) {
-  console.error('DATABASE_URL is required when bookmark storage is postgres.');
+try {
+  ensureDatabaseUrl();
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 }
 
+const app = createApp();
+const port = Number(process.env.PORT) || 8080;
+const databaseUrl = process.env.DATABASE_URL!;
+
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
-  console.log(`Bookmark storage: ${describeStorageMode(storageMode)}`);
+  console.log(`Bookmark storage: ${describeDatabase(databaseUrl)}`);
 });

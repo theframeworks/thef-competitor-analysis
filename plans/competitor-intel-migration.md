@@ -211,56 +211,38 @@ npm run dev
 
 ---
 
-## Phase 5: Production build + Cloud Run deployment
+## Phase 5: DigitalOcean App Platform deployment
 
 **User stories**: 15, 17, 18, 23
 
 ### What to build
 
-Containerize the app and configure automated deployment to Cloud Run.
+Deploy to DigitalOcean App Platform (see [`docs/DEPLOY.md`](../docs/DEPLOY.md)).
 
-**Docker**
-- Multi-stage or single Dockerfile: install deps → build client → build server → run Express on port 8080
-- Express serves `client/dist` static files and `/api/*` routes
-- Production `npm start` command
-
-**Cloud Build (`cloudbuild.yaml`)**
-- Build Docker image → push to Artifact Registry → deploy to Cloud Run
-- Trigger: push to `main`
-- **`ignoredFiles`: `['data/**']`** on the trigger (via console or trigger config)
-
-**GCP setup**
-- Enable Cloud Run, Cloud Build, Artifact Registry, Secret Manager APIs
-- Secrets: `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`
-- Cloud Run service env vars: `GITHUB_REPO`, `GITHUB_DATA_PATH`, secret refs
-- `min-instances: 0`, `max-instances: 1` (optional, reduces write races)
-- Blaze billing + budget alert recommended
+**App Platform (`.do/app.yaml`)**
+- Node.js buildpack: `npm ci && npm run build`, run `npm start`
+- Managed PostgreSQL for bookmarks; SQLite locally for development
+- Secrets: `ANTHROPIC_API_KEY`, `DATABASE_URL`
 
 **Root scripts**
 - `npm run build` — production client + server build
-- `npm start` — production server entry
+- `npm start` — Postgres migrations + production server
 
 ### Acceptance criteria
 
-- [ ] `docker build` + `docker run` serves app locally on port 8080 with working API
-- [ ] Push to `main` with code changes triggers Cloud Build and deploys new Cloud Run revision
-- [ ] Push that **only** changes `data/projects/*.json` does **not** trigger Cloud Build
+- [ ] Push to `main` deploys new App Platform revision
 - [ ] Production URL loads app, runs research, saves/loads bookmarks
-- [ ] Secrets not in image layers or repo
-- [ ] Cloud Run service responds over HTTPS with default URL
+- [ ] Secrets not in repo
+- [ ] Local dev uses SQLite at `data/dev.db` with no extra setup
 
 ### Verify
 
 ```bash
-# Local container smoke test
-docker build -t competitor-intel .
-docker run -p 8080:8080 --env-file .env competitor-intel
-
-# After GCP setup:
-# 1. Push code change → Cloud Build runs → new revision live
-# 2. Save bookmark in prod → JSON on GitHub → Cloud Build does NOT run
-# 3. Check Cloud Build history in GCP console
+npm ci && npm run build
+NODE_ENV=production ANTHROPIC_API_KEY=... DATABASE_URL=postgresql://... npm start
 ```
+
+See [`docs/DEPLOY.md`](../docs/DEPLOY.md) for the operator checklist.
 
 ---
 
@@ -314,7 +296,7 @@ Add automated tests for critical paths, remove legacy files, document ops.
 | 2 | Full UI parity (no persistence) | Phase 1 |
 | 3 | GitHub storage API (curl-verified) | Phase 1 |
 | 4 | Bookmark UI wired to storage | Phases 2 + 3 |
-| 5 | Cloud Run production deploy | Phase 4 |
+| 5 | DigitalOcean production deploy | Phase 4 |
 | 6 | Tests, docs, cleanup | Phase 5 |
 
 Phases 2 and 3 can run **in parallel** if two people work on the migration; Phase 4 requires both.

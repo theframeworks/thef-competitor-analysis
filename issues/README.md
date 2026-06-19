@@ -8,7 +8,7 @@ Source: [`plans/competitor-intel-migration.md`](../plans/competitor-intel-migrat
 
 ```text
 #1 ──┬──► #2 ──┐
-     │         ├──► #4 ──► #5 ──► #6 (HITL) ──► #7
+     │         ├──► #4 ──► #7
      └──► #3 ──┘
 ```
 
@@ -22,8 +22,8 @@ Source: [`plans/competitor-intel-migration.md`](../plans/competitor-intel-migrat
 | 2 | [002-port-full-research-ui.md](./002-port-full-research-ui.md) | AFK | #1 |
 | 3 | [003-github-storage-bookmark-api.md](./003-github-storage-bookmark-api.md) | AFK | #1 |
 | 4 | [004-bookmark-library-ui.md](./004-bookmark-library-ui.md) | AFK | #2, #3 |
-| 5 | [005-production-build-docker.md](./005-production-build-docker.md) | AFK | #4 |
-| 6 | [006-gcp-cloud-run-deployment.md](./006-gcp-cloud-run-deployment.md) | HITL | #5 |
-| 7 | [007-tests-docs-cleanup.md](./007-tests-docs-cleanup.md) | AFK | #6 |
+| 7 | [007-tests-docs-cleanup.md](./007-tests-docs-cleanup.md) | AFK | #4 |
+
+Production deploy is documented in [`docs/DEPLOY.md`](../docs/DEPLOY.md) (DigitalOcean App Platform + Postgres).
 
 All issues are tracked locally in this directory only.
