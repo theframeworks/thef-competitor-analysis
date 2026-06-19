@@ -7,7 +7,7 @@ import {
   listProjects,
   updateProject,
 } from '../src/db/projects.js';
-import { StorageError } from '../src/storage/errors.js';
+import { StorageError } from '../src/db/errors.js';
 import { createTestDatabase, resetProjects } from './helpers/test-database.js';
 
 describe('bookmark storage', () => {

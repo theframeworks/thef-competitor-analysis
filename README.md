@@ -9,12 +9,11 @@ client/          Vite + React + TypeScript + Tailwind (frontend)
 server/          Express API (Anthropic proxy + bookmark CRUD)
 server/prisma/   Database schemas (SQLite dev, PostgreSQL prod)
 data/dev.db      Local SQLite database (created on first dev run)
-legacy/          Deprecated Apps Script app (index.html, Code.gs)
 ```
 
 A single Express process serves the API and, in production, the built client assets. Local development runs Vite (port 5173) with `/api` proxied to Express (default port 8080).
 
-**Bookmark storage:** SQLite file at `data/dev.db` locally (zero setup). PostgreSQL on DigitalOcean in production. One Prisma data layer for both.
+**Database:** SQLite at `data/dev.db` locally (zero setup). PostgreSQL on DigitalOcean in production.
 
 ## Local development
 
@@ -50,27 +49,8 @@ On first run, the server creates/syncs the SQLite schema at `data/dev.db`. Open 
 | `npm run typecheck` | TypeScript check across workspaces |
 | `npm run db:push --workspace=server` | Sync local SQLite schema |
 | `npm run db:migrate --workspace=server` | Apply Postgres migrations (production) |
-| `npm run db:import-json --workspace=server` | Import legacy JSON bookmarks into the database |
+| `npm run db:import-json --workspace=server` | Import JSON files from `data/projects/` into the database |
 
-## DigitalOcean deployment
+## Deployment
 
-Production runs on **DigitalOcean App Platform** with **managed PostgreSQL**.
-
-1. Create a Postgres database cluster in DigitalOcean.
-2. Create an App Platform app from this repo (Node.js buildpack).
-3. Link the database — `DATABASE_URL` is injected automatically.
-4. Set `ANTHROPIC_API_KEY` as an encrypted env var.
-5. Use the smallest instance size (`apps-s-1vcpu-0.5gb`, ~$5/mo).
-
-Build and run locally:
-
-```bash
-npm ci && npm run build
-NODE_ENV=production ANTHROPIC_API_KEY=sk-ant-... DATABASE_URL=postgresql://... npm start
-```
-
-See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the full operator checklist.
-
-## Legacy
-
-The original Google Apps Script application (`index.html`, `Code.gs`) is archived under [`legacy/`](legacy/README.md). JSON files under `data/projects/` can be imported with `db:import-json`.
+Production runs on **DigitalOcean App Platform** with managed PostgreSQL. See [`docs/DEPLOY.md`](docs/DEPLOY.md) for setup, env vars, and the app spec (`.do/app.yaml`).
