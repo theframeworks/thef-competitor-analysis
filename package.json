@@ -14,9 +14,14 @@
     "build": "npm run build --workspace=client && npm run build --workspace=server",
     "start": "NODE_ENV=production sh -c \"npm run db:migrate --workspace=server && npm run start --workspace=server\"",
     "typecheck": "npm run typecheck --workspace=client && npm run typecheck --workspace=server",
-    "test": "npm run test --workspace=server"
+    "test": "npm run test --workspace=server",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "concurrently": "^10.0.3",
     "wait-on": "^8.0.3"
   }
