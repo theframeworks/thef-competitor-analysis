@@ -1,12 +1,12 @@
 # DigitalOcean App Platform deployment
 
-Production runs on **DigitalOcean App Platform** with **managed PostgreSQL** for bookmark storage. Local development uses **SQLite** (`data/dev.db`).
+Production runs on **DigitalOcean App Platform** with an app-attached **dev PostgreSQL database** for bookmark storage. Local development uses **SQLite** (`data/dev.db`).
 
 ## Architecture
 
 ```text
 git push (main) → DO App Platform → Node.js build → Web service (port 8080)
-                                              ↘ Managed Postgres (bookmarks)
+                                              ↘ App dev Postgres (bookmarks)
 ```
 
 ## Cheapest setup
@@ -14,7 +14,9 @@ git push (main) → DO App Platform → Node.js build → Web service (port 8080
 | Component | Recommendation | Approx. cost |
 |-----------|----------------|--------------|
 | Web service | `apps-s-1vcpu-0.5gb` (512 MiB) | $5/mo |
-| Database | Managed Postgres, smallest tier | from ~$15/mo |
+| Database | App Platform dev database (`db`, PG 18) | smallest option |
+
+Dev databases only accept connections from the app and have no automated backups. To reach one, run `doctl apps console <app-id> web`, then `psql "$DATABASE_URL"`.
 
 Use the app spec at [`.do/app.yaml`](../.do/app.yaml). Region: London (`lon1`).
 
@@ -26,30 +28,29 @@ Use the app spec at [`.do/app.yaml`](../.do/app.yaml). Region: London (`lon1`).
 | `DATABASE_URL` | Yes | Postgres connection string (injected when DB is linked) |
 | `PORT` | No | Default `8080` |
 
-`NODE_ENV=production` is set by `npm start`. Node 24 is pinned via `.nvmrc` and `engines`.
+`NODE_ENV=production` is set by `pnpm start`. The buildpack reads Node 24 from `engines.node` and the pnpm version from `packageManager`. Keep both in sync with `mise.toml`.
 
 ## Deploy steps
 
-1. Create a Postgres cluster in DigitalOcean.
-2. Create an App Platform app from this repo (Node.js buildpack).
-3. Build command: `npm ci && npm run build`. Run command: `npm start`.
-4. Link the database and set `ANTHROPIC_API_KEY` as a secret.
+1. Create an App Platform app from this repo (Node.js buildpack).
+2. Build command: `pnpm build`. Run command: `pnpm start`. The buildpack runs `pnpm install` itself.
+3. Add a dev database named `db` and set `ANTHROPIC_API_KEY` as a secret.
 5. HTTP port: **8080**, instance size: **512 MiB**.
 
-On each deploy, `npm start` runs `prisma migrate deploy` (Postgres) then starts the server.
+On each deploy, `pnpm start` runs `prisma migrate deploy` (Postgres) then starts the server.
 
 ## Migrate legacy JSON bookmarks
 
 ```bash
-DATABASE_URL="postgresql://..." npm run db:import-json --workspace=server
+DATABASE_URL="postgresql://..." pnpm --filter server db:import-json
 ```
 
 ## Local vs production databases
 
 | Environment | Engine | Schema sync |
 |-------------|--------|-------------|
-| Local dev | SQLite (`data/dev.db`) | `prisma db push` (runs automatically on `npm run dev`) |
-| Production | PostgreSQL | `prisma migrate deploy` (runs on `npm start`) |
+| Local dev | SQLite (`data/dev.db`) | `prisma db push` (runs automatically on `pnpm dev`) |
+| Production | PostgreSQL | `prisma migrate deploy` (runs on `pnpm start`) |
 
 Two Prisma schema files share the same model:
 

@@ -17,14 +17,15 @@ A single Express process serves the API and, in production, the built client ass
 
 ## Local development
 
-**Prerequisites:** Node.js 24, npm, and an Anthropic API key.
+**Prerequisites:** [mise](https://mise.jdx.dev) and an Anthropic API key. `mise install` provides the pinned Node.js and pnpm versions from `mise.toml`.
 
 ```bash
 git clone <repo-url>
 cd thef-competitor-analysis
 cp .env.example .env   # at minimum set ANTHROPIC_API_KEY
-npm install
-npm run dev
+mise install
+pnpm install
+pnpm dev
 ```
 
 On first run, the server creates/syncs the SQLite schema at `data/dev.db`. Open http://localhost:5173.
@@ -42,14 +43,14 @@ On first run, the server creates/syncs the SQLite schema at `data/dev.db`. Open 
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Sync SQLite schema and start Express + Vite |
-| `npm run build` | Production build (client + server + Prisma client) |
-| `npm start` | Run Postgres migrations and production server |
-| `npm test` | Run server tests (SQLite) |
-| `npm run typecheck` | TypeScript check across workspaces |
-| `npm run db:push --workspace=server` | Sync local SQLite schema |
-| `npm run db:migrate --workspace=server` | Apply Postgres migrations (production) |
-| `npm run db:import-json --workspace=server` | Import JSON files from `data/projects/` into the database |
+| `pnpm dev` | Sync SQLite schema and start Express + Vite |
+| `pnpm build` | Production build (client + server + Prisma client) |
+| `pnpm start` | Run Postgres migrations and production server |
+| `pnpm test` | Run server tests (SQLite) |
+| `pnpm typecheck` | TypeScript check across workspaces |
+| `pnpm --filter server db:push` | Sync local SQLite schema |
+| `pnpm --filter server db:migrate` | Apply Postgres migrations (production) |
+| `pnpm --filter server db:import-json` | Import JSON files from `data/projects/` into the database |
 
 ## Deployment
 
