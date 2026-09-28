@@ -14,7 +14,7 @@ ingress:
 name: competitor-intel-monitor
 region: lon
 services:
-- build_command: npm ci && npm run build
+- build_command: pnpm build
   environment_slug: node-js
   envs:
   - key: ANTHROPIC_API_KEY
@@ -37,4 +37,4 @@ services:
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: web
-  run_command: npm start
+  run_command: pnpm start

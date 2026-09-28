@@ -2,8 +2,8 @@
  * One-time import of bookmark JSON files into the database.
  *
  * Usage:
- *   DATABASE_URL=postgresql://... npm run db:import-json --workspace=server
- *   DATABASE_URL=file:../../data/dev.db npm run db:import-json --workspace=server
+ *   DATABASE_URL=postgresql://... pnpm --filter server db:import-json
+ *   DATABASE_URL=file:../../data/dev.db pnpm --filter server db:import-json
  *
  * Defaults to data/projects/ at the repo root.
  */

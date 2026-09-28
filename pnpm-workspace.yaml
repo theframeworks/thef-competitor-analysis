@@ -1,0 +1,11 @@
+packages:
+  - client
+  - server
+
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  prisma: true
+  esbuild: true
+  fsevents: false
+  ttf2woff2: false
