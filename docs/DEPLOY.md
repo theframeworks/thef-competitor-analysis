@@ -28,7 +28,7 @@ Use the app spec at [`.do/app.yaml`](../.do/app.yaml). Region: London (`lon1`).
 | `DATABASE_URL` | Yes | Postgres connection string (injected when DB is linked) |
 | `PORT` | No | Default `8080` |
 
-`NODE_ENV=production` is set by `pnpm start`. The buildpack reads Node 24 from `engines.node` and the pnpm version from `packageManager`. Keep both in sync with `mise.toml`.
+`NODE_ENV=production` is set by `pnpm start`. The buildpack reads Node 24 from `engines.node` and the pnpm version from `packageManager`. `packageManager` is the exact pnpm pin. `mise.toml` only pins the major versions, and pnpm switches itself to the `packageManager` version inside the repo.
 
 ## Deploy steps
 
