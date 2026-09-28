@@ -1,10 +1,6 @@
 databases:
-- cluster_name: the-hive
-  db_name: competitor-analysis-prd
-  db_user: doadmin
-  engine: PG
-  name: the-hive
-  production: true
+- engine: PG
+  name: db
   version: "18"
 features:
 - buildpack-stack=ubuntu-22
@@ -27,10 +23,10 @@ services:
     value: EV[1:2wJ5G6z1jUuGhbk1Ms856HnHx3piLb7t:F+fH6u9RF3/NyiM+rtJUSGuH7el7IPKFThsGbpFj2oJjCoW2kDJ6UV9QIyhtAFXx0pFpz0EVnxhqKwLqrlQPN3UHVgzU36uWPmDxfh7pg0xSssqPhw64S3rLTlgw5Qodb2XmcaCzWNo1v4MMwQpHzKAVTqXkw85l/LPqYA==]
   - key: DATABASE_URL
     scope: RUN_AND_BUILD_TIME
-    value: ${the-hive.DATABASE_URL}
+    value: ${db.DATABASE_URL}
   - key: DATABASE_CA_CERT
     scope: RUN_AND_BUILD_TIME
-    value: ${the-hive.CA_CERT}
+    value: ${db.CA_CERT}
   github:
     branch: main
     deploy_on_push: true
