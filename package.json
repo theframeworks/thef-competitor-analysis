@@ -1,9 +1,9 @@
 {
   "name": "competitor-intel-monitor",
   "private": true,
-  "packageManager": "pnpm@12.6.0",
   "engines": {
-    "node": "24.x"
+    "node": "24.x",
+    "pnpm": "12.x"
   },
   "scripts": {
     "dev": "pnpm --filter server db:sync && concurrently -n server,client -c blue,green \"pnpm --filter server dev\" \"wait-on -t 60000 http-get://127.0.0.1:8080/api/health && pnpm --filter client dev\"",
